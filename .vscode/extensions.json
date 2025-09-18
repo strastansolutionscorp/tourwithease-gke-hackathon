@@ -1,0 +1,39 @@
+{
+"recommendations": [
+// Essential Extensions
+"ms-vscode.vscode-typescript-next",
+"bradlc.vscode-tailwindcss",
+"ms-vscode.vscode-json",
+"esbenp.prettier-vscode",
+"dbaeumer.vscode-eslint",
+// Collaboration
+"ms-vsliveshare.vsliveshare",
+"ms-vsliveshare.vsliveshare-pack",
+// Containerization
+"ms-vscode-remote.remote-containers",
+"ms-azuretools.vscode-docker",
+// Kubernetes & Cloud
+"ms-kubernetes-tools.vscode-kubernetes-tools",
+"GoogleCloudTools.cloudcode",
+"ms-vscode.terraform",
+// Python Support (for ADK agents)
+"ms-python.python",
+"ms-python.pylint",
+"ms-python.black-formatter",
+
+// Git & Productivity
+"eamodio.gitlens",
+"ms-vscode.remote-explorer",
+"formulahendry.code-runner",
+// API Development
+"humao.rest-client",
+"ms-vscode.vscode-thunder-client",
+// Documentation
+"yzhang.markdown-all-in-one",
+"jebbs.plantuml",
+// Node.js Specific
+"ms-vscode.npm-outdated",
+"christian-kohler.npm-intellisense",
+"ms-vscode.node-debug2"
+]
+}

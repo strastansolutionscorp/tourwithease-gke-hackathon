@@ -1,0 +1,10 @@
+# k8s/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: adk-agents
+  labels:
+    name: adk-agents
+    project: tourwithease-hackathon
+---
+

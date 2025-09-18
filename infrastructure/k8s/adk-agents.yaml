@@ -1,0 +1,115 @@
+# k8s/adk-agents.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adk-api-gateway
+  namespace: adk-agents
+  labels:
+    app: adk-api-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: adk-api-gateway
+  template:
+    metadata:
+      labels:
+        app: adk-api-gateway
+    spec:
+      serviceAccountName: adk-service-account
+      containers:
+      - name: api-gateway
+        image: gcr.io/PROJECT_ID/adk-api-gateway:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: adk-config
+              key: REDIS_URL
+        - name: AWS_API_GATEWAY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: adk-config
+              key: AWS_API_GATEWAY_URL
+        - name: AWS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: api-key
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "PROJECT_ID"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /agents/status
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          volumeMounts:
+          - name: service-account-key
+            mountPath: /etc/service-account
+            readOnly: true
+        volumes:
+        - name: service-account-key
+          secret:
+            secretName: gcp-service-account-key
+        tolerations:
+        - key: "ai-workload"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+        nodeSelector:
+          workload: "adk-agents"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adk-api-service
+  namespace: adk-agents
+spec:
+  selector:
+    app: adk-api-gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+  - name: websocket
+    port: 8080
+    targetPort: 8000
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: adk-api-ingress
+  namespace: adk-agents
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "adk-api-ip"
+    networking.gke.io/managed-certificates: "adk-api-ssl-cert"
+    kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+  - host: api.tourwithease-hackathon.com
+    http:
+      paths:
+      - path: /*
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: adk-api-service
+            port:
+              number: 80

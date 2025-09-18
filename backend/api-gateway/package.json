@@ -1,0 +1,53 @@
+{
+    "name": "@tourwithease/api-gateway",
+    "version": "1.0.0",
+    "description": "API Gateway with WebSocket support for ADK agents",
+    "main": "dist/index.js",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "build": "tsc && tsc-alias",
+        "start": "node dist/index.js",
+        "test": "jest",
+        "lint": "eslint src --ext .ts,.tsx",
+        "lint:fix": "eslint src --ext .ts,.tsx --fix",
+        "type-check": "tsc --noEmit",
+        "docker:build": "docker build -t gcr.io/PROJECT_ID/api-gateway:latest .",
+        "docker:push": "docker push gcr.io/PROJECT_ID/api-gateway:latest"
+    },
+    "dependencies": {
+        "express": "^4.18.2",
+        "socket.io": "^4.7.4",
+        "cors": "^2.8.5",
+        "helmet": "^7.1.0",
+        "compression": "^1.7.4",
+        "express-rate-limit": "^7.1.5",
+        "jsonwebtoken": "^9.0.2",
+        "axios": "^1.6.2",
+        "redis": "^4.6.11",
+        "ws": "^8.14.2",
+        "uuid": "^9.0.1",
+        "zod": "^3.22.4",
+        "dotenv": "^16.3.1",
+        "winston": "^3.11.0",
+        "express-async-errors": "^3.1.1",
+        "@google-cloud/secret-manager": "^5.0.1",
+        "@google-cloud/logging-winston": "^5.3.0"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.21",
+        "@types/cors": "^2.8.17",
+        "@types/compression": "^1.7.5",
+        "@types/jsonwebtoken": "^9.0.5",
+        "@types/uuid": "^9.0.7",
+        "@types/ws": "^8.5.10",
+        "@types/jest": "^29.5.8",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.1.1",
+        "tsx": "^4.6.0",
+        "typescript": "^5.3.0",
+        "tsc-alias": "^1.8.8",
+        "eslint": "^8.55.0",
+        "@typescript-eslint/eslint-plugin": "^6.13.1",
+        "@typescript-eslint/parser": "^6.13.1"
+    }
+}

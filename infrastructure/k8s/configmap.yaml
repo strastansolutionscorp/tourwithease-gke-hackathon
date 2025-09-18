@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adk-config
+  namespace: adk-agents
+data:
+  REDIS_URL: "redis://redis-service:6379"
+  AWS_API_GATEWAY_URL: "https://your-api-gateway-url/prod"
+  ENVIRONMENT: "hackathon"
+  LOG_LEVEL: "INFO"
+  # Agent configuration
+  AGENT_ORCHESTRATOR_REPLICAS: "2"
+  AGENT_SPECIALIST_REPLICAS: "1"
+  # A2A Protocol settings
+  A2A_MESSAGE_TIMEOUT: "30"
+  A2A_MAX_RETRIES: "3"
