@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-deployment
+  namespace: adk-agents
+  labels:
+    app: api-gateway
+spec:
+  replicas: 1 # You can adjust this
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      serviceAccountName: adk-service-account
+      containers:
+      - name: api-gateway
+        image: us-central1-docker.pkg.dev/agentic-travel-ai-solutions/tourwithease-repo/api-gateway:latest # IMPORTANT: Ensure this matches your built image URI
+        ports:
+        - containerPort: 3001 # Adjust if your app listens on a different port
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+        env:
+        - name: NODE_ENV
+          value: production
+        # This is how you inject the AWS API Key as an environment variable
+        - name: AWS_API_KEY # This will be the name of the environment variable in your container
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials # The name of the Secret resource
+              key: ziU53MRcWq2FQTSDaF1sf5lK2hm9xZmR3HPYUBBD # The key within the Secret's data that holds the API key
+        # Mount GCP Service Account Key as a file
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/service-account.json
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+          readOnly: true
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: gcp-service-account-key

@@ -4,11 +4,13 @@ kind: Deployment
 metadata:
   name: redis
   namespace: adk-agents
+  labels:
+    app: redis
 spec:
   replicas: 1
   selector:
-  matchLabels:
-    app: redis
+    matchLabels:
+      app: redis
   template:
     metadata:
       labels:
@@ -18,20 +20,20 @@ spec:
       - name: redis
         image: redis:7-alpine
         ports:
-      - containerPort: 6379
+        - containerPort: 6379
         resources:
-        requests:
-          memory: "256Mi"
-          cpu: "250m"
-        limits:
-          memory: "512Mi"
-          cpu: "500m"
-      volumeMounts:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
       - name: redis-data
-        mountPath: /data
-    volumes:
-    - name: redis-data
-      emptyDir: {}
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
