@@ -1,23 +1,27 @@
 #!/bin/bash
-echo "🚀 Starting TourWithEase Development Environment"
-# Check if Redis is running
-if ! docker ps | grep -q redis; then
-echo "📦 Starting Redis..."
-docker-compose up -d redis
-sleep 2
-fi
-# Start Python ADK agents in background
-echo "🐍 Starting Python ADK agents..."
-cd backend/api-gateway/python-agents
-source venv/bin/activate
-python main.py &
-PYTHON_PID=$!
-cd ../../..
-# Start Node.js services
-echo "🚀 Starting development servers..."
-# Use trap to cleanup background processes
-trap 'kill $PYTHON_PID 2>/dev/null' EXIT
-# Start all Node.js services concurrently
-npm run dev
-# Cleanup
-kill $PYTHON_PID 2>/dev/null
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# --- Banner ---
+echo "=================================================="
+echo "  Starting TourWithEase Local Development Env"
+echo "=================================================="
+echo
+
+# --- Check for Docker ---
+echo "Checking for Docker and Docker Compose..."
+command -v docker >/dev/null 2>&1 || { echo >&2 "Docker is required but not installed. Aborting."; exit 1; }
+command -v docker-compose >/dev/null 2>&1 || { echo >&2 "Docker Compose is required but not installed. Aborting."; exit 1; }
+echo "Docker and Docker Compose are available."
+echo
+
+# --- Start Docker Compose ---
+echo "Starting services with docker-compose..."
+docker-compose up --build
+
+# --- End of Script ---
+echo "=================================================="
+echo "  Development Environment Stopped"
+echo "=================================================="
+echo

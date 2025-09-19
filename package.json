@@ -1,9 +1,9 @@
 {
-"name": "tourwithease-gke-hackathon",
-"version": "1.0.0",
-"description": "TourWithEase ADK Multi-Agent Travel AI System",
-"private": true,
-"workspaces": [
+  "name": "tourwithease-gke-hackathon",
+  "version": "1.0.0",
+  "description": "TourWithEase ADK Multi-Agent Travel AI System",
+  "private": true,
+  "workspaces": [
     "frontend/my-app",
     "backend/api-gateway",
     "agents",
@@ -21,30 +21,37 @@
     "test": "lerna run test",
     "lint": "lerna run lint",
     "clean": "lerna clean && rm -rf node_modules",
-    "docker:build": "docker-compose build",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
     "k8s:deploy": "kubectl apply -f infrastructure/k8s/",
     "k8s:delete": "kubectl delete -f infrastructure/k8s/",
     "gcp:setup": "cd infrastructure/terraform && terraform init && terraform apply",
     "prepare": "husky install"
   },
   "devDependencies": {
-"@types/node": "^20.10.0",
-"concurrently": "^8.2.2",
-"husky": "^8.0.3",
-"lerna": "^8.0.0",
-"lint-staged": "^15.2.0",
-"prettier": "^3.1.0",
-"typescript": "^5.3.0"
-},
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
+    "husky": "^8.0.3",
+    "lerna": "^8.0.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0"
+  },
   "engines": {
     "node": "22.19.0",
     "npm": ">=9.0.0"
   },
-"lint-staged": {
-"*.{js,jsx,ts,tsx}": ["prettier --write", "eslint --fix"],
-"*.{json,md,yml,yaml}": ["prettier --write"]
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "kustomize": "^4.5.4"
+  }
 }
-}
-
