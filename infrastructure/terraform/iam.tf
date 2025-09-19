@@ -1,66 +1,42 @@
-# Service account for GKE workloads
+# terraform/iam.tf - CORRECTED VERSION
+# Create service account first
 resource "google_service_account" "gke_workload_sa" {
-    account_id = "gke-workload-identity"
-    display_name = "GKE Workload Identity Service Account"
-    description = "Service account for ADK agents running on GKE"
-    project = google_project.tourwithease_hackathon.project_id
+  account_id   = "gke-workload-identity"
+  display_name = "GKE Workload Identity Service Account"
+  description  = "Service account for ADK agents"
+  project      = var.project_id
 }
 
-# Workload Identity binding
+# Wait for service account creation before binding
+resource "time_sleep" "wait_for_sa" {
+  depends_on      = [google_service_account.gke_workload_sa]
+  create_duration = "10s"
+}
+
+# Workload Identity binding - FIXED
 resource "google_service_account_iam_binding" "workload_identity_binding" {
-    service_account_id = google_service_account.gke_workload_sa.name
-    role = "roles/iam.workloadIdentityUser"
-
-    members = [
-        "serviceAccount:${google_project.tourwithease_hackathon.project_id}.svc.id.goog[default/adk-agent-ksa]"
-    ]
+  depends_on         = [time_sleep.wait_for_sa, google_container_cluster.primary]
+  service_account_id = google_service_account.gke_workload_sa.name
+  role               = "roles/iam.workloadIdentityUser"
+  
+  members = [
+    "serviceAccount:${var.project_id}.svc.id.goog[agentic-ai/adk-agent-ksa]"
+  ]
 }
 
-# Grant necessary permissions to service account
+# Grant permissions to service account
 resource "google_project_iam_member" "gke_sa_permissions" {
-    for_each = toset([
-        "roles/aiplatform.user", # Vertex AI access
-        "roles/secretmanager.secretAccessor", # Access secrets
-        "roles/cloudsql.client", # Cloud SQL access
-        "roles/storage.objectViewer", # Storage access
-        "roles/monitoring.metricWriter", # Write metrics
-        "roles/logging.logWriter" # Write logs
-    ])
-
-    project = google_project.tourwithease_hackathon.project_id
-    role = each.key
-    member = "serviceAccount:${google_service_account.gke_workload_sa.email}"
-}
-
-# Team member IAM (replace with actual email addresses)
-locals {
-    team_members = [
-    "dev1@yourdomain.com", # AI Developer 1
-    "dev2@yourdomain.com", # AI Developer 2
-    "dev3@yourdomain.com", # Fullstack Developer 1
-    "dev4@yourdomain.com" # Fullstack Developer 2
-    ]
-    team_roles = [
-    "roles/container.developer", # GKE access
-    "roles/aiplatform.user", # Vertex AI access
-    "roles/cloudbuild.builds.editor", # Build access
-    "roles/secretmanager.admin", # Secret management
-    "roles/monitoring.editor", # Monitoring access
-    "roles/logging.viewer", # Log viewing
-    "roles/source.admin" # Source repository access
-    ]
-}
-
-resource "google_project_iam_member" "team_member_access" {
-    for_each = {
-        for pair in setproduct(local.team_members, local.team_roles) :
-        "${pair[0]}-${pair[1]}" => {
-            member = "user:${pair[0]}"
-            role = pair[1]
-        }
-    }
-
-    project = google_project.tourwithease_hackathon.project_id
-    role = each.value.role
-    member = each.value.member
+  for_each = toset([
+    "roles/aiplatform.user",
+    "roles/secretmanager.secretAccessor",
+    "roles/storage.objectViewer",
+    "roles/monitoring.metricWriter",
+    "roles/logging.logWriter"
+  ])
+  
+  project = var.project_id
+  role    = each.key
+  member  = "serviceAccount:${google_service_account.gke_workload_sa.email}"
+  
+  depends_on = [google_service_account.gke_workload_sa]
 }
