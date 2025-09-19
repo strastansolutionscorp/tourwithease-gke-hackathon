@@ -13,6 +13,8 @@ def load_agent_config() -> Dict[str, Any]:
 
 config = load_agent_config()
 
+# try
+
 TOOL_SCHEMAS = [
     ToolSchema(
         name="search_hotels_aws",
