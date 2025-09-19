@@ -1,0 +1,57 @@
+# Core Google ADK and AI dependencies
+google-adk==0.1.0
+google-generativeai==0.7.2
+google-ai-generativelanguage==0.6.6
+google-api-core==2.19.1
+google-api-python-client==2.136.0
+google-auth==2.31.0
+google-auth-httplib2==0.2.0
+googleapis-common-protos==1.63.2
+
+# For loading environment variables from .env files
+python-dotenv==1.0.1
+
+# For A2A (Agent-to-Agent) messaging bus (assuming Redis Pub/Sub)
+redis==5.0.7
+
+# For AWS integration (based on your aws_tools.py file)
+boto3==1.34.138
+botocore==1.34.138
+s3transfer==0.10.2
+jmespath==1.0.1
+
+# Dependencies for web server, async operations, and data handling
+anyio==4.4.0
+fastapi==0.111.0
+h11==0.14.0
+httplib2==0.22.0
+httpx==0.27.0
+httpcore==1.0.5
+pydantic==2.8.2
+pydantic-core==2.20.1
+pyparsing==3.1.2
+sniffio==1.3.1
+starlette==0.37.2
+uvicorn==0.30.1
+
+# Other common sub-dependencies
+annotated-types==0.7.0
+cachetools==5.3.3
+certifi==2024.7.4
+charset-normalizer==3.3.2
+grpcio==1.64.1
+grpcio-status==1.62.2
+idna==3.7
+packaging==24.1
+proto-plus==1.24.0
+protobuf==4.25.3
+pyasn1==0.6.0
+pyasn1-modules==0.4.0
+python-dateutil==2.9.0
+PyYAML==6.0.1
+requests==2.32.3
+rsa==4.9
+six==1.16.0
+tqdm==4.66.4
+typing_extensions==4.12.2
+urllib3==2.2.2
