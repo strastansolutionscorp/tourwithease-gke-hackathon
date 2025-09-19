@@ -9,7 +9,7 @@
 //(2)
 "use client";
 import { AuthProvider } from "react-oidc-context";
-import { oidcConfigSignInConfig } from "../src/utils/oidcConfigSignInConfig";
+import { oidcConfigSignInConfig } from "../src/utils/oidcConfigSigninConfig.js";
 
 export default function AuthWrapper({ children }: { children: any }) {
   return <AuthProvider {...oidcConfigSignInConfig}>{children}</AuthProvider>;
