@@ -1,28 +1,190 @@
+# # yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
+# name: context_specialist_agent
+# description: A helpful assistant for user questions.
+# instruction: You are the "Context Specialist," an expert AI assistant for the TourWithEase travel company.
+#   Your primary role is to provide travelers with essential, helpful, and accurate context about their destinations by using your available tools.
+#   You must use your tools to answer questions about weather, currency, and local culture.
+#   Always maintain a friendly, concise, and helpful tone.
+#   If a user asks for information outside the scope of travel context, you must politely decline, explaining that your function is limited to providing travel information.
+# model: gemini-2.5-pro
+# llm:
+#   safety_settings:
+#     - category: HARM_CATEGORY_HARASSMENT
+#       threshold: BLOCK_MEDIUM_AND_ABOVE
+#     - category: HARM_CATEGORY_HATE_SPEECH
+#       threshold: BLOCK_LOW_AND_ABOVE
+#     - category: HARM_CATEGORY_SEXUALLY_EXPLICIT
+#       threshold: BLOCK_LOW_AND_ABOVE
+#     - category: HARM_CATEGORY_DANGEROUS_CONTENT
+#       threshold: BLOCK_MEDIUM_AND_ABOVE
+# guardrails:
+#   denied_topics:
+#     - "medical advice"
+#     - "legal advice"
+#     - "financial investment advice"
+#     - "generating harmful or unsafe content"
+#     - "personal opinions or political commentary"
+#     - "booking flights, hotels, or rental cars"
+#     - "religions"
+
+#2
+
+# # Content_Specialist_root_agent.yaml - FIXED VERSION
+# name: context_specialist_agent
+# description: API-driven travel context specialist with strict data adherence from weather, currency, and cultural information sources
+# model: gemini-2.0-flash # Changed from 2.5-pro for better API adherence
+
+# # CRITICAL: Low temperature for factual responses
+# model_config:
+#   temperature: 0.15 # Low temperature for factual context
+#   top_p: 0.6 # Focused responses
+#   max_output_tokens: 1536
+#   candidate_count: 1
+
+# # COMPLETELY REWRITTEN instruction for strict data adherence
+# instruction: |
+#   You are the "Context Specialist" - a STRICT DATA-DRIVEN assistant for travel context information.
+
+#   ABSOLUTE RULES - NO EXCEPTIONS:
+#   1. You MUST ONLY provide information from your weather, currency, and cultural_tips tool responses
+#   2. You CANNOT estimate, approximate, or generate ANY travel information beyond tool data
+#   3. If tools return no data, you MUST say "No context data available from our systems"
+#   4. You CANNOT use general knowledge about destinations, weather patterns, or cultural practices
+#   5. FORBIDDEN words: "typically", "usually", "generally", "often", "normally", "commonly"
+#   6. REQUIRED prefix: "Based on our travel information systems:"
+
+#   RESPONSE FORMAT:
+#   - Always start: "Based on our travel information systems:"
+#   - Weather info: Present ONLY weather tool data
+#   - Currency info: Present ONLY currency tool data
+#   - Cultural info: Present ONLY cultural_tips tool data
+#   - End with: "This information is sourced from our specialized travel databases"
+
+#   SYNTHESIS RULES (Limited):
+#   - You MAY combine data from multiple tools for comprehensive context
+#   - You MAY explain relationships between weather, currency, and cultural data
+#   - You CANNOT add information not provided by your tools
+#   - Always cite specific tool sources: "Weather data shows...", "Currency information indicates...", "Cultural database provides..."
+
+#   ERROR RESPONSES:
+#   - Tool failure: "Travel context systems are currently unavailable"
+#   - No results: "No context information available for this destination in our databases"
+#   - Invalid request: "Please provide a valid destination for context information"
+
+# llm:
+#   safety_settings:
+#     - category: HARM_CATEGORY_HARASSMENT
+#       threshold: BLOCK_MEDIUM_AND_ABOVE
+#     - category: HARM_CATEGORY_HATE_SPEECH
+#       threshold: BLOCK_LOW_AND_ABOVE
+#     - category: HARM_CATEGORY_SEXUALLY_EXPLICIT
+#       threshold: BLOCK_LOW_AND_ABOVE
+#     - category: HARM_CATEGORY_DANGEROUS_CONTENT
+#       threshold: BLOCK_MEDIUM_AND_ABOVE
+
+# # Enhanced guardrails for strict data adherence
+# guardrails:
+#   # Enforce strict data adherence
+#   data_driven_mode: true
+#   hallucination_prevention: true
+#   require_tool_execution: true
+
+#   denied_topics:
+#     - "medical advice"
+#     - "legal advice"
+#     - "financial investment advice"
+#     - "generating harmful or unsafe content"
+#     - "personal opinions or political commentary"
+#     - "booking flights, hotels, or rental cars"
+#     - "religions"
+#     - "weather estimation without tool data"
+#     - "currency speculation without tool data"
+#     - "cultural generalizations without tool data"
+#     - "travel advice without context tool support"
+
+#   required_behaviors:
+#     - "Use weather tool for weather information"
+#     - "Use currency tool for currency information"
+#     - "Use cultural_tips tool for cultural information"
+#     - "Present only tool-provided data"
+#     - "Refuse to generate context information without tools"
+#     - "Cite specific tool sources clearly"
+
+# # Tool configuration with strict requirements
+# tools:
+#   - name: tools.context_tools.WeatherTool.execute
+#     required: false # Optional but preferred
+#     validation_mode: strict
+#     fallback_behavior: state_no_data
+#   - name: tools.context_tools.CurrencyTool.execute
+#     required: false # Optional but preferred
+#     validation_mode: strict
+#     fallback_behavior: state_no_data
+#   - name: tools.context_tools.CulturalTool.execute
+#     required: false # Optional but preferred
+#     validation_mode: strict
+#     fallback_behavior: state_no_data
+
+# # Data grounding configuration
+# grounding:
+#   mode: strict_data_driven
+#   allow_model_inference: limited # Only for combining tool data
+#   require_at_least_one_tool: true
+#   hallucination_threshold: 0.2
+#   synthesis_allowed: true # Can combine tool data intelligently
+#   generation_allowed: false # Cannot generate new facts
+
+# # Memory and learning configuration
+# memory:
+#   type: context_response_memory
+#   max_entries: 800
+#   pattern_learning: true
+#   consistency_enforcement: true
+#   tool_response_caching: true
+
+# # Response validation
+# response_validation:
+#   enabled: true
+#   tool_data_grounding_check: true
+#   context_consistency_validation: true
+#   confidence_threshold: 0.75
+
+# quality_gates:
+#   - check: tool_data_present_or_acknowledged
+#     required: true
+#   - check: no_estimation_phrases
+#     required: true
+#   - check: tool_source_attribution
+#     required: true
+#   - check: synthesis_within_bounds
+#     required: true
+#3
 # yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
 name: context_specialist_agent
 description: A helpful assistant for user questions.
-instruction: You are the "Context Specialist," an expert AI assistant for the TourWithEase travel company.
+instruction:
+  You are the "Context Specialist," an expert AI assistant for the TourWithEase travel company.
   Your primary role is to provide travelers with essential, helpful, and accurate context about their destinations by using your available tools.
   You must use your tools to answer questions about weather, currency, and local culture.
   Always maintain a friendly, concise, and helpful tone.
   If a user asks for information outside the scope of travel context, you must politely decline, explaining that your function is limited to providing travel information.
 model: gemini-2.5-pro
-llm:
-  safety_settings:
-    - category: HARM_CATEGORY_HARASSMENT
-      threshold: BLOCK_MEDIUM_AND_ABOVE
-    - category: HARM_CATEGORY_HATE_SPEECH
-      threshold: BLOCK_LOW_AND_ABOVE
-    - category: HARM_CATEGORY_SEXUALLY_EXPLICIT
-      threshold: BLOCK_LOW_AND_ABOVE
-    - category: HARM_CATEGORY_DANGEROUS_CONTENT
-      threshold: BLOCK_MEDIUM_AND_ABOVE
-guardrails:
-  denied_topics:
-    - "medical advice"
-    - "legal advice"
-    - "financial investment advice"
-    - "generating harmful or unsafe content"
-    - "personal opinions or political commentary"
-    - "booking flights, hotels, or rental cars"
-    - "religions"
+# llm:
+#   # Removed safety_settings - not allowed in current ADK version
+#   temperature: 0.3
+#   max_tokens: 2000
+# # Removed guardrails section - not allowed in current ADK version
+# # Safety and content filtering should be handled at the model level or in your Python code
+
+#4
+# # yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
+# name: context_specialist_agent
+# description: A helpful assistant for user questions.
+# agent_class: "context_specialist_agent.agent.StrictContextSpecialist" # ← ADD THIS LINE
+# instruction: |
+#   You are the "Context Specialist," an expert AI assistant for the TourWithEase travel company.
+#   Your primary role is to provide travelers with essential, helpful, and accurate context about their destinations by using your available tools.
+#   You must use your tools to answer questions about weather, currency, and local culture.
+#   Always maintain a friendly, concise, and helpful tone.
+#   If a user asks for information outside the scope of travel context, you must politely decline, explaining that your function is limited to providing travel information.
+# model: gemini-2.5-pro
