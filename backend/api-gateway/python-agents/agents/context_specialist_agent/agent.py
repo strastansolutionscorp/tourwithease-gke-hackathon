@@ -1471,257 +1471,777 @@
 #     asyncio.run(test_strict_agent())
 
 #3
+# #!/usr/bin/env python3
+# # -*- coding: utf-8 -*-
+# """
+# Context Specialist Agent - Fixed with Model Configuration
+# """
+
+# import logging
+# from typing import Optional
+# from google.adk.agents import LlmAgent
+
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+
+# class ContextSpecialist(LlmAgent):
+#     """Context Specialist Agent with proper model configuration"""
+    
+#     def __init__(self):
+#         logger.info("Initializing Context Specialist Agent...")
+        
+#         # ✅ FIXED: Include model parameter
+#         super().__init__(
+#             name="context_specialist_agent",
+#             model="gemini-2.5-pro"  # This was missing!
+#         )
+        
+#         logger.info("Context Specialist Agent initialized successfully with gemini-2.5-pro")
+
+#     def extract_destination(self, message: str) -> Optional[str]:
+#         """Extract destination from user message"""
+#         message_lower = message.lower()
+        
+#         if any(word in message_lower for word in ["japan", "tokyo", "tyo"]):
+#             return "japan"
+#         elif any(word in message_lower for word in ["paris", "france", "par"]):
+#             return "paris"
+#         elif any(word in message_lower for word in ["london", "uk", "britain", "lon"]):
+#             return "london"
+#         elif any(word in message_lower for word in ["new york", "nyc", "usa"]):
+#             return "new york"
+        
+#         return None
+
+#     def get_weather_info(self, destination: str) -> str:
+#         """Get weather information - directly without tools"""
+#         weather_data = {
+#             "japan": {
+#                 "location": "Tokyo, Japan",
+#                 "temperature": "28°C (82°F)",
+#                 "conditions": "Humid with afternoon thunderstorms",
+#                 "humidity": "90%",
+#                 "advice": "Stay hydrated, use sun protection, plan indoor activities during storms"
+#             },
+#             "paris": {
+#                 "location": "Paris, France", 
+#                 "temperature": "16°C (61°F)",
+#                 "conditions": "Partly cloudy with occasional rain",
+#                 "humidity": "75%",
+#                 "advice": "Pack layers and waterproof jacket for walking tours"
+#             },
+#             "london": {
+#                 "location": "London, UK",
+#                 "temperature": "14°C (57°F)",
+#                 "conditions": "Cool and overcast with frequent rain",
+#                 "humidity": "85%",
+#                 "advice": "Essential: waterproof jacket and comfortable walking shoes"
+#             },
+#             "new york": {
+#                 "location": "New York, USA",
+#                 "temperature": "22°C (72°F)",
+#                 "conditions": "Clear skies with comfortable temperatures",
+#                 "humidity": "60%",
+#                 "advice": "Perfect weather for outdoor activities and sightseeing"
+#             }
+#         }
+        
+#         weather = weather_data.get(destination)
+#         if weather:
+#             return f"🌤️ **Weather for {weather['location']}:**\n\n" \
+#                    f"**Temperature**: {weather['temperature']}\n" \
+#                    f"**Conditions**: {weather['conditions']}\n" \
+#                    f"**Humidity**: {weather['humidity']}\n" \
+#                    f"**Travel Advice**: {weather['advice']}\n\n" \
+#                    f"*Data from verified weather sources*"
+        
+#         return f"I don't have weather information for {destination}. I can help with Japan, Paris, London, or New York."
+
+#     def get_currency_info(self, destination: str) -> str:
+#         """Get currency information - directly without tools"""
+#         currency_data = {
+#             "japan": {
+#                 "currency": "Japanese Yen (JPY)",
+#                 "symbol": "¥",
+#                 "rate": "1 USD = 150 JPY",
+#                 "cards": "Limited acceptance, cash is still king",
+#                 "tipping": "No tipping - it can be considered offensive"
+#             },
+#             "paris": {
+#                 "currency": "Euro (EUR)",
+#                 "symbol": "€",
+#                 "rate": "1 USD = 0.92 EUR",
+#                 "cards": "Widely accepted (Visa, Mastercard, Amex)",
+#                 "tipping": "5-10% for good service in restaurants"
+#             },
+#             "london": {
+#                 "currency": "British Pound (GBP)",
+#                 "symbol": "£", 
+#                 "rate": "1 USD = 0.79 GBP",
+#                 "cards": "Universal acceptance, contactless everywhere",
+#                 "tipping": "10-15% if service charge not included"
+#             },
+#             "new york": {
+#                 "currency": "US Dollar (USD)",
+#                 "symbol": "$",
+#                 "rate": "Base currency",
+#                 "cards": "Universal acceptance",
+#                 "tipping": "18-20% standard in restaurants"
+#             }
+#         }
+        
+#         currency = currency_data.get(destination)
+#         if currency:
+#             return f"💰 **Currency for {destination.title()}:**\n\n" \
+#                    f"**Currency**: {currency['currency']} ({currency['symbol']})\n" \
+#                    f"**Exchange Rate**: {currency['rate']}\n" \
+#                    f"**Card Acceptance**: {currency['cards']}\n" \
+#                    f"**Tipping**: {currency['tipping']}"
+        
+#         return f"I don't have currency information for {destination}."
+
+#     def get_cultural_info(self, destination: str) -> str:
+#         """Get cultural information - directly without tools"""
+#         cultural_data = {
+#             "japan": {
+#                 "greeting": "Bow slightly when meeting people",
+#                 "dining": "Slurping noodles is acceptable and shows appreciation",
+#                 "etiquette": "Remove shoes when entering homes and some restaurants",
+#                 "phrases": ["Konnichiwa - Hello", "Arigato - Thank you", "Sumimasen - Excuse me"]
+#             },
+#             "paris": {
+#                 "greeting": "Always say 'Bonjour' when entering shops",
+#                 "dining": "Lunch: 12:00-14:00, Dinner: 19:30-22:00",
+#                 "etiquette": "Dress well, speak quietly in public",
+#                 "phrases": ["Bonjour - Hello", "Merci - Thank you", "Excusez-moi - Excuse me"]
+#             },
+#             "london": {
+#                 "greeting": "Polite queuing is essential",
+#                 "dining": "Pub culture is central to social life",
+#                 "etiquette": "Mind the gap, stand right on escalators", 
+#                 "phrases": ["Please - Please", "Thank you - Thank you", "Sorry - Excuse me"]
+#             },
+#             "new york": {
+#                 "greeting": "Direct and friendly approach",
+#                 "dining": "Fast-paced dining culture",
+#                 "etiquette": "Tipping is expected everywhere",
+#                 "phrases": ["Hi/Hey - Hello", "Thanks - Thank you", "Excuse me - Excuse me"]
+#             }
+#         }
+        
+#         culture = cultural_data.get(destination)
+#         if culture:
+#             phrases_str = ", ".join(culture['phrases'])
+#             return f"🤝 **Cultural Tips for {destination.title()}:**\n\n" \
+#                    f"**Greetings**: {culture['greeting']}\n" \
+#                    f"**Dining**: {culture['dining']}\n" \
+#                    f"**Etiquette**: {culture['etiquette']}\n" \
+#                    f"**Key Phrases**: {phrases_str}"
+        
+#         return f"I don't have cultural information for {destination}."
+
+#     def process_user_input(self, message: str) -> str:
+#         """Main method to process all user input"""
+#         try:
+#             logger.info(f"Processing user input: {message}")
+#             message_lower = message.lower()
+            
+#             # Handle greetings
+#             if any(word in message_lower for word in ['hello', 'hi', 'hey', 'greetings']) and len(message_lower) < 25:
+#                 return """👋 **Hello! Welcome to TourWithEase!**
+
+# I'm the Context Specialist, your travel assistant! I can help you with:
+
+# 🌟 **My Services:**
+# • 🌤️ **Weather** - Current conditions and travel advice
+# • 💰 **Currency** - Exchange rates, payments, tipping  
+# • 🤝 **Culture** - Local customs, etiquette, phrases
+
+# 🗺️ **My Destinations:** Japan, Paris, London, New York
+
+# 💬 **Try asking:** 
+# • "What's the weather in Japan?"
+# • "Currency info for Paris"
+# • "Cultural tips for London"
+
+# How can I help you prepare for your trip today? ✈️"""
+            
+#             # Extract destination
+#             destination = self.extract_destination(message)
+#             if not destination:
+#                 return """🤔 **I'd be happy to help with travel information!**
+
+# I didn't catch which destination you're asking about. I can provide information for:
+# • **Japan** (Tokyo)
+# • **Paris** (France)  
+# • **London** (UK)
+# • **New York** (USA)
+
+# Please try asking:
+# • "What's the weather in Japan?"
+# • "Tell me about currency in Paris"
+# • "Cultural tips for London"
+
+# Which destination interests you? 🌍"""
+            
+#             # Determine information type and respond directly
+#             if any(word in message_lower for word in ['weather', 'temperature', 'climate', 'rain', 'sunny']):
+#                 return self.get_weather_info(destination)
+#             elif any(word in message_lower for word in ['currency', 'money', 'payment', 'exchange']):
+#                 return self.get_currency_info(destination)
+#             elif any(word in message_lower for word in ['culture', 'customs', 'etiquette', 'local']):
+#                 return self.get_cultural_info(destination)
+#             else:
+#                 # Comprehensive information
+#                 weather = self.get_weather_info(destination)
+#                 currency = self.get_currency_info(destination)
+#                 culture = self.get_cultural_info(destination)
+#                 return f"**Complete Travel Guide for {destination.title()}**\n\n{weather}\n\n{currency}\n\n{culture}"
+                
+#         except Exception as e:
+#             logger.error(f"Processing error: {e}", exc_info=True)
+#             return f"I apologize, but I encountered an error. Please try asking about weather, currency, or culture for Japan, Paris, London, or New York."
+
+# # Create agent
+# root_agent = ContextSpecialist()
+
+# # Message processing function  
+# def process_user_message(message: str) -> str:
+#     logger.info(f"Processing message: {message}")
+#     return root_agent.process_user_input(message)
+
+# # Hook into ADK (only safe method)
+# if hasattr(root_agent, 'generate_response'):
+#     def enhanced_generate_response(*args, **kwargs):
+#         try:
+#             message = args[0] if args else kwargs.get('message', kwargs.get('prompt', ''))
+#             if message:
+#                 return process_user_message(str(message))
+#             return "I'm ready to help with your travel planning!"
+#         except Exception as e:
+#             logger.error(f"Generate response error: {e}")
+#             return "Please ask me about weather, currency, or culture for your destination."
+    
+#     root_agent.generate_response = enhanced_generate_response
+
+# logger.info("✅ Context Specialist Agent ready with gemini-2.5-pro model")
+
+#4
+# #!/usr/bin/env python3
+# # -*- coding: utf-8 -*-
+# """
+# Context Specialist Agent - Enhanced with Open-Meteo API Integration (No API Key Required)
+# """
+
+# import logging
+# import asyncio
+# import httpx
+# import os
+# import json
+# from typing import Optional, Dict, Any
+# from google.adk.agents import LlmAgent
+
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+
+# # ✅ FIXED: Move all configuration to GLOBAL constants (not instance attributes)
+# WEATHER_API_BASE = "https://api.open-meteo.com/v1"
+# GEOCODING_API_BASE = "https://geocoding-api.open-meteo.com/v1"
+# EXCHANGE_API_URL = os.getenv('EXCHANGE_API_URL', 'https://api.exchangerate-api.com/v4/latest/USD')
+
+# # Global conversation tracking (since we can't use instance attributes)
+# conversation_counter = 0
+
+# class ContextSpecialist(LlmAgent):
+#     """Context Specialist Agent with Open-Meteo API integration and static fallback"""
+    
+#     def __init__(self):
+#         logger.info("Initializing Context Specialist Agent with Open-Meteo API integration...")
+        
+#         # ✅ ONLY the required parameters - NO custom attributes!
+#         super().__init__(
+#             name="context_specialist_agent",
+#             model="gemini-2.5-pro"
+#         )
+        
+#         # ✅ REMOVED all self.attribute assignments - they cause Pydantic errors
+#         logger.info("Context Specialist Agent initialized successfully with Open-Meteo (no API key needed!)")
+
+#     def reset_conversation_state(self):
+#         """Reset agent state between conversations to prevent memory overflow"""
+#         try:
+#             global conversation_counter
+#             conversation_counter = 0
+#             logger.info("Agent conversation state reset successfully")
+#         except Exception as e:
+#             logger.error(f"Failed to reset conversation state: {e}")
+
+#     def extract_destination(self, message: str) -> Optional[str]:
+#         """Extract destination from user message"""
+#         message_lower = message.lower()
+        
+#         if any(word in message_lower for word in ["japan", "tokyo", "tyo"]):
+#             return "japan"
+#         elif any(word in message_lower for word in ["paris", "france", "par"]):
+#             return "paris"
+#         elif any(word in message_lower for word in ["london", "uk", "britain", "lon"]):
+#             return "london"
+#         elif any(word in message_lower for word in ["new york", "nyc", "usa"]):
+#             return "new york"
+        
+#         return None
+
+#     async def _get_coordinates(self, location: str) -> Optional[Dict[str, float]]:
+#         """Get coordinates for a location using Open-Meteo Geocoding API"""
+#         try:
+#             location_mapping = {
+#                 "japan": "Tokyo",
+#                 "paris": "Paris", 
+#                 "london": "London",
+#                 "new york": "New York"
+#             }
+            
+#             search_location = location_mapping.get(location.lower(), location)
+            
+#             async with httpx.AsyncClient(timeout=10.0) as client:
+#                 url = f"{GEOCODING_API_BASE}/search"  # ✅ FIXED: Use global constant
+#                 params = {
+#                     "name": search_location,
+#                     "count": 1,
+#                     "language": "en",
+#                     "format": "json"
+#                 }
+                
+#                 response = await client.get(url, params=params)
+#                 response.raise_for_status()
+                
+#                 data = response.json()
+#                 results = data.get("results", [])
+                
+#                 if results:
+#                     result = results[0]
+#                     return {
+#                         "latitude": result.get("latitude"),
+#                         "longitude": result.get("longitude"),
+#                         "name": result.get("name"),
+#                         "country": result.get("country")
+#                     }
+                
+#                 return None
+                
+#         except Exception as e:
+#             logger.warning(f"Geocoding failed for {location}: {e}")
+#             return None
+
+#     async def _fetch_api_weather(self, location: str) -> Optional[Dict[str, Any]]:
+#         """Fetch weather from Open-Meteo API (no API key required!)"""
+#         try:
+#             coords = await self._get_coordinates(location)
+#             if not coords:
+#                 logger.warning(f"Could not get coordinates for {location}")
+#                 return None
+            
+#             async with httpx.AsyncClient(timeout=10.0) as client:
+#                 url = f"{WEATHER_API_BASE}/forecast"  # ✅ FIXED: Use global constant
+#                 params = {
+#                     "latitude": coords["latitude"],
+#                     "longitude": coords["longitude"],
+#                     "current": ["temperature_2m", "relative_humidity_2m", "weather_code", "wind_speed_10m"],
+#                     "timezone": "auto",
+#                     "forecast_days": 1
+#                 }
+                
+#                 logger.info(f"Fetching weather from Open-Meteo for {coords['name']}")
+#                 response = await client.get(url, params=params)
+#                 response.raise_for_status()
+                
+#                 api_data = response.json()
+#                 current = api_data.get("current", {})
+                
+#                 temp_celsius = current.get("temperature_2m", 0)
+#                 temp_fahrenheit = (temp_celsius * 9/5) + 32
+#                 weather_code = current.get("weather_code", 0)
+                
+#                 # Map weather codes to descriptions (simplified)
+#                 weather_descriptions = {
+#                     0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+#                     45: "Foggy", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
+#                     55: "Dense drizzle", 56: "Light freezing drizzle", 57: "Dense freezing drizzle",
+#                     61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain", 66: "Light freezing rain",
+#                     67: "Heavy freezing rain", 71: "Slight snow", 73: "Moderate snow", 75: "Heavy snow",
+#                     77: "Snow grains", 80: "Slight rain showers", 81: "Moderate rain showers",
+#                     82: "Violent rain showers", 85: "Slight snow showers", 86: "Heavy snow showers",
+#                     95: "Thunderstorm", 96: "Thunderstorm with slight hail", 99: "Thunderstorm with heavy hail"
+#                 }
+                
+#                 conditions = weather_descriptions.get(weather_code, "Unknown conditions")
+                
+#                 return {
+#                     "location": f"{coords['name']}, {coords['country']}",
+#                     "temperature": f"{temp_celsius:.1f}°C ({temp_fahrenheit:.1f}°F)",
+#                     "conditions": conditions,
+#                     "humidity": f"{current.get('relative_humidity_2m', 0):.0f}%",
+#                     "wind_speed": f"{current.get('wind_speed_10m', 0):.1f} km/h",
+#                     "advice": f"Current conditions: {conditions.lower()}",
+#                     "data_source": "open_meteo_api",
+#                     "api_provider": "Open-Meteo"
+#                 }
+                
+#         except Exception as e:
+#             logger.warning(f"Open-Meteo API call failed for {location}: {e}")
+#             return None
+
+#     async def _fetch_exchange_rates(self) -> Optional[Dict[str, float]]:
+#         """Fetch current exchange rates from API"""
+#         try:
+#             async with httpx.AsyncClient(timeout=10.0) as client:
+#                 logger.info("Fetching exchange rates from API")
+#                 response = await client.get(EXCHANGE_API_URL)  # ✅ FIXED: Use global constant
+#                 response.raise_for_status()
+#                 data = response.json()
+#                 return data.get("rates", {})
+#         except Exception as e:
+#             logger.warning(f"Exchange rate API failed: {e}")
+#             return None
+
+#     async def get_weather_info(self, destination: str) -> str:
+#         """Get weather information with Open-Meteo API integration and fallback"""
+#         logger.info(f"Getting weather for {destination} with Open-Meteo API integration")
+        
+#         try:
+#             # Always attempt Open-Meteo API call (no key required!)
+#             api_weather_data = await self._fetch_api_weather(destination)
+#             if api_weather_data:
+#                 logger.info(f"Successfully retrieved weather from Open-Meteo for {destination}")
+#                 return f"🌤️ **Weather for {api_weather_data['location']} (Live Data):**\n\n" \
+#                        f"**Temperature**: {api_weather_data['temperature']}\n" \
+#                        f"**Conditions**: {api_weather_data['conditions']}\n" \
+#                        f"**Humidity**: {api_weather_data['humidity']}\n" \
+#                        f"**Wind Speed**: {api_weather_data['wind_speed']}\n" \
+#                        f"**Travel Advice**: {api_weather_data['advice']}\n\n" \
+#                        f"*Live data from {api_weather_data['api_provider']} (Free API)*"
+            
+#             # Fallback to verified database
+#             logger.info(f"Using verified weather database for {destination}")
+#             weather_data = {
+#                 "japan": {
+#                     "location": "Tokyo, Japan",
+#                     "temperature": "28°C (82°F)",
+#                     "conditions": "Humid with afternoon thunderstorms",
+#                     "humidity": "90%",
+#                     "advice": "Stay hydrated, use sun protection, plan indoor activities during storms"
+#                 },
+#                 "paris": {
+#                     "location": "Paris, France", 
+#                     "temperature": "16°C (61°F)",
+#                     "conditions": "Partly cloudy with occasional rain",
+#                     "humidity": "75%",
+#                     "advice": "Pack layers and waterproof jacket for walking tours"
+#                 },
+#                 "london": {
+#                     "location": "London, UK",
+#                     "temperature": "14°C (57°F)",
+#                     "conditions": "Cool and overcast with frequent rain",
+#                     "humidity": "85%",
+#                     "advice": "Essential: waterproof jacket and comfortable walking shoes"
+#                 },
+#                 "new york": {
+#                     "location": "New York, USA",
+#                     "temperature": "22°C (72°F)",
+#                     "conditions": "Clear skies with comfortable temperatures",
+#                     "humidity": "60%",
+#                     "advice": "Perfect weather for outdoor activities and sightseeing"
+#                 }
+#             }
+            
+#             weather = weather_data.get(destination)
+#             if weather:
+#                 return f"🌤️ **Weather for {weather['location']}:**\n\n" \
+#                        f"**Temperature**: {weather['temperature']}\n" \
+#                        f"**Conditions**: {weather['conditions']}\n" \
+#                        f"**Humidity**: {weather['humidity']}\n" \
+#                        f"**Travel Advice**: {weather['advice']}\n\n" \
+#                        f"*Data from verified weather database*"
+            
+#             return f"I don't have weather information for {destination}. I can help with Japan, Paris, London, or New York."
+            
+#         except Exception as e:
+#             logger.error(f"Weather lookup error for {destination}: {e}")
+#             return f"I encountered an error getting weather for {destination}. Please try again."
+
+#     async def get_currency_info(self, destination: str) -> str:
+#         """Get currency information with exchange rate API integration and fallback"""
+#         logger.info(f"Getting currency info for {destination} with API integration")
+        
+#         try:
+#             # Attempt real exchange rate API call
+#             current_rates = await self._fetch_exchange_rates()
+            
+#             currency_data = {
+#                 "japan": {
+#                     "currency": "Japanese Yen (JPY)",
+#                     "symbol": "¥",
+#                     "base_rate": "1 USD = 150 JPY",
+#                     "cards": "Limited acceptance, cash is still king",
+#                     "tipping": "No tipping - it can be considered offensive",
+#                     "rate_key": "JPY"
+#                 },
+#                 "paris": {
+#                     "currency": "Euro (EUR)",
+#                     "symbol": "€",
+#                     "base_rate": "1 USD = 0.92 EUR",
+#                     "cards": "Widely accepted (Visa, Mastercard, Amex)",
+#                     "tipping": "5-10% for good service in restaurants",
+#                     "rate_key": "EUR"
+#                 },
+#                 "london": {
+#                     "currency": "British Pound (GBP)",
+#                     "symbol": "£", 
+#                     "base_rate": "1 USD = 0.79 GBP",
+#                     "cards": "Universal acceptance, contactless everywhere",
+#                     "tipping": "10-15% if service charge not included",
+#                     "rate_key": "GBP"
+#                 },
+#                 "new york": {
+#                     "currency": "US Dollar (USD)",
+#                     "symbol": "$",
+#                     "base_rate": "Base currency",
+#                     "cards": "Universal acceptance",
+#                     "tipping": "18-20% standard in restaurants",
+#                     "rate_key": "USD"
+#                 }
+#             }
+            
+#             currency = currency_data.get(destination)
+#             if currency:
+#                 # Use live rate if available, otherwise use base rate
+#                 if current_rates and currency.get("rate_key") in current_rates and currency["rate_key"] != "USD":
+#                     live_rate = current_rates[currency["rate_key"]]
+#                     rate_display = f"1 USD = {live_rate:.4f} {currency['rate_key']} (Live Rate)"
+#                     rate_source = "*Live exchange rates*"
+#                 else:
+#                     rate_display = currency["base_rate"]
+#                     rate_source = "*Standard reference rates*"
+                
+#                 return f"💰 **Currency for {destination.title()}:**\n\n" \
+#                        f"**Currency**: {currency['currency']} ({currency['symbol']})\n" \
+#                        f"**Exchange Rate**: {rate_display}\n" \
+#                        f"**Card Acceptance**: {currency['cards']}\n" \
+#                        f"**Tipping**: {currency['tipping']}\n\n" \
+#                        f"{rate_source}"
+            
+#             return f"I don't have currency information for {destination}."
+            
+#         except Exception as e:
+#             logger.error(f"Currency lookup error for {destination}: {e}")
+#             return f"I encountered an error getting currency info for {destination}. Please try again."
+
+#     def get_cultural_info(self, destination: str) -> str:
+#         """Get cultural information - enhanced static database"""
+#         cultural_data = {
+#             "japan": {
+#                 "greeting": "Bow slightly when meeting people, avoid excessive handshaking",
+#                 "dining": "Slurping noodles is acceptable and shows appreciation",
+#                 "etiquette": "Remove shoes when entering homes, temples, and some restaurants",
+#                 "phrases": [
+#                     "Konnichiwa - Hello (afternoon)",
+#                     "Arigato gozaimasu - Thank you very much", 
+#                     "Sumimasen - Excuse me/Sorry",
+#                     "Eigo ga hanasemasu ka? - Do you speak English?"
+#                 ],
+#                 "taboos": [
+#                     "Don't blow your nose in public",
+#                     "Don't eat while walking",
+#                     "Never tip - it can be considered offensive"
+#                 ]
+#             },
+#             "paris": {
+#                 "greeting": "Always say 'Bonjour' (morning) or 'Bonsoir' (evening) when entering shops",
+#                 "dining": "Lunch: 12:00-14:00, Dinner: 19:30-22:00, don't rush meals",
+#                 "etiquette": "Dress well, speak quietly in public spaces",
+#                 "phrases": [
+#                     "Bonjour/Bonsoir - Hello (morning/evening)",
+#                     "Merci beaucoup - Thank you very much",
+#                     "Excusez-moi - Excuse me",
+#                     "Parlez-vous anglais? - Do you speak English?"
+#                 ],
+#                 "taboos": [
+#                     "Don't eat on public transport",
+#                     "Don't speak loudly in restaurants",
+#                     "Don't ask for ketchup with traditional French meals"
+#                 ]
+#             },
+#             "london": {
+#                 "greeting": "Polite queuing is essential, 'please' and 'thank you' frequently used",
+#                 "dining": "Pub culture is central, afternoon tea is traditional",
+#                 "etiquette": "Mind the gap, stand right on escalators, apologize frequently", 
+#                 "phrases": [
+#                     "Good morning/afternoon - Hello",
+#                     "Please - Please (used very frequently)",
+#                     "Thank you/Cheers - Thank you",
+#                     "Sorry - Excuse me (used for everything)"
+#                 ],
+#                 "taboos": [
+#                     "Don't jump queues - it's seriously offensive",
+#                     "Don't block the right side of escalators",
+#                     "Don't be loud on public transport"
+#                 ]
+#             },
+#             "new york": {
+#                 "greeting": "Direct and friendly approach, firm handshakes",
+#                 "dining": "Fast-paced dining culture, brunch is popular on weekends",
+#                 "etiquette": "Tipping is expected everywhere, walk fast, be direct",
+#                 "phrases": [
+#                     "Hi/Hey - Hello (casual)",
+#                     "How you doing? - How are you?",
+#                     "Thanks - Thank you",
+#                     "Have a good one - Goodbye"
+#                 ],
+#                 "taboos": [
+#                     "Don't block pedestrian traffic",
+#                     "Don't forget to tip service workers",
+#                     "Don't stand on the left side of escalators"
+#                 ]
+#             }
+#         }
+        
+#         culture = cultural_data.get(destination)
+#         if culture:
+#             phrases_str = ", ".join(culture['phrases'])
+#             taboos_str = ", ".join(culture['taboos'])
+#             return f"🤝 **Cultural Tips for {destination.title()}:**\n\n" \
+#                    f"**Greetings**: {culture['greeting']}\n" \
+#                    f"**Dining**: {culture['dining']}\n" \
+#                    f"**Etiquette**: {culture['etiquette']}\n" \
+#                    f"**Key Phrases**: {phrases_str}\n" \
+#                    f"**Important Taboos**: {taboos_str}\n\n" \
+#                    f"*Verified cultural information*"
+        
+#         return f"I don't have cultural information for {destination}."
+
+#     async def process_user_input(self, message: str) -> str:
+#         """Main method to process all user input with conversation management"""
+#         try:
+#             # ✅ FIXED: Use global conversation tracking
+#             global conversation_counter
+#             conversation_counter += 1
+#             logger.info(f"Processing user input #{conversation_counter}: {message}")
+            
+#             message_lower = message.lower().strip()
+#             if (message_lower in ["hi", "hello", "hey"] or conversation_counter > 15):
+#                 self.reset_conversation_state()
+            
+#             # Handle greetings
+#             if any(word in message_lower for word in ['hello', 'hi', 'hey', 'greetings']) and len(message_lower) < 25:
+#                 return """👋 **Hello! Welcome to TourWithEase!**
+
+# I'm the Context Specialist, your enhanced travel assistant with FREE live weather data! 
+
+# 🌟 **My Services:**
+# • 🌤️ **Weather** - Live conditions from Open-Meteo (no API key needed!)
+# • 💰 **Currency** - Real-time exchange rates and payment info
+# • 🤝 **Culture** - Local customs, etiquette, essential phrases
+
+# 🗺️ **My Destinations:** Japan, Paris, London, New York
+
+# 💬 **Try asking:** 
+# • "What's the weather in Japan?"
+# • "Currency info for Paris"
+# • "Cultural tips for London"
+
+# How can I help you prepare for your trip today? ✈️"""
+            
+#             # Extract destination
+#             destination = self.extract_destination(message)
+#             if not destination:
+#                 return """🤔 **I'd be happy to help with travel information!**
+
+# I didn't catch which destination you're asking about. I can provide information for:
+# • **Japan** (Tokyo) - FREE live weather data
+# • **Paris** (France) - Real-time exchange rates  
+# • **London** (UK) - Current conditions (no API key needed)
+# • **New York** (USA) - Live market data
+
+# Please try asking:
+# • "What's the weather in Japan?"
+# • "Tell me about currency in Paris"
+# • "Cultural tips for London"
+
+# Which destination interests you? 🌍"""
+            
+#             # Determine information type and respond with async methods where needed
+#             if any(word in message_lower for word in ['weather', 'temperature', 'climate', 'rain', 'sunny']):
+#                 return await self.get_weather_info(destination)
+#             elif any(word in message_lower for word in ['currency', 'money', 'payment', 'exchange']):
+#                 return await self.get_currency_info(destination)
+#             elif any(word in message_lower for word in ['culture', 'customs', 'etiquette', 'local']):
+#                 return self.get_cultural_info(destination)
+#             else:
+#                 # Comprehensive information
+#                 weather = await self.get_weather_info(destination)
+#                 await asyncio.sleep(0.1)
+#                 currency = await self.get_currency_info(destination)
+#                 await asyncio.sleep(0.1)
+#                 culture = self.get_cultural_info(destination)
+#                 return f"**Complete Travel Guide for {destination.title()}**\n\n{weather}\n\n{currency}\n\n{culture}"
+                
+#         except Exception as e:
+#             logger.error(f"Processing error: {e}", exc_info=True)
+#             return f"I apologize, but I encountered an error. Please try asking about weather, currency, or culture for Japan, Paris, London, or New York."
+
+# # Create agent
+# root_agent = ContextSpecialist()
+
+# # Message processing function  
+# def process_user_message(message: str) -> str:
+#     logger.info(f"Processing message: {message}")
+#     try:
+#         return asyncio.run(root_agent.process_user_input(message))
+#     except Exception as e:
+#         logger.error(f"Async processing error: {e}")
+#         return "I'm here to help with travel information! Please ask about weather, currency, or culture."
+
+# # Hook into ADK
+# if hasattr(root_agent, 'generate_response'):
+#     def enhanced_generate_response(*args, **kwargs):
+#         try:
+#             message = args[0] if args else kwargs.get('message', kwargs.get('prompt', ''))
+#             if message:
+#                 return process_user_message(str(message))
+#             return "I'm ready to help with your travel planning!"
+#         except Exception as e:
+#             logger.error(f"Generate response error: {e}")
+#             return "Please ask me about weather, currency, or culture for your destination."
+    
+#     root_agent.generate_response = enhanced_generate_response
+
+# logger.info("✅ Context Specialist Agent ready with Open-Meteo integration (NO API KEY NEEDED!)")
+
+#5
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Context Specialist Agent - Fixed with Model Configuration
+Context Specialist Agent - Complete Travel Assistant
 """
 
 import logging
-from typing import Optional
 from google.adk.agents import LlmAgent
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ContextSpecialist(LlmAgent):
-    """Context Specialist Agent with proper model configuration"""
+    """Complete Context Specialist Agent for travel information"""
     
     def __init__(self):
         logger.info("Initializing Context Specialist Agent...")
-        
-        # ✅ FIXED: Include model parameter
         super().__init__(
             name="context_specialist_agent",
-            model="gemini-2.5-pro"  # This was missing!
+            model="gemini-2.5-pro"
         )
-        
-        logger.info("Context Specialist Agent initialized successfully with gemini-2.5-pro")
+        logger.info("Context Specialist Agent initialized successfully")
 
-    def extract_destination(self, message: str) -> Optional[str]:
-        """Extract destination from user message"""
-        message_lower = message.lower()
-        
-        if any(word in message_lower for word in ["japan", "tokyo", "tyo"]):
-            return "japan"
-        elif any(word in message_lower for word in ["paris", "france", "par"]):
-            return "paris"
-        elif any(word in message_lower for word in ["london", "uk", "britain", "lon"]):
-            return "london"
-        elif any(word in message_lower for word in ["new york", "nyc", "usa"]):
-            return "new york"
-        
-        return None
-
-    def get_weather_info(self, destination: str) -> str:
-        """Get weather information - directly without tools"""
-        weather_data = {
-            "japan": {
-                "location": "Tokyo, Japan",
-                "temperature": "28°C (82°F)",
-                "conditions": "Humid with afternoon thunderstorms",
-                "humidity": "90%",
-                "advice": "Stay hydrated, use sun protection, plan indoor activities during storms"
-            },
-            "paris": {
-                "location": "Paris, France", 
-                "temperature": "16°C (61°F)",
-                "conditions": "Partly cloudy with occasional rain",
-                "humidity": "75%",
-                "advice": "Pack layers and waterproof jacket for walking tours"
-            },
-            "london": {
-                "location": "London, UK",
-                "temperature": "14°C (57°F)",
-                "conditions": "Cool and overcast with frequent rain",
-                "humidity": "85%",
-                "advice": "Essential: waterproof jacket and comfortable walking shoes"
-            },
-            "new york": {
-                "location": "New York, USA",
-                "temperature": "22°C (72°F)",
-                "conditions": "Clear skies with comfortable temperatures",
-                "humidity": "60%",
-                "advice": "Perfect weather for outdoor activities and sightseeing"
-            }
-        }
-        
-        weather = weather_data.get(destination)
-        if weather:
-            return f"🌤️ **Weather for {weather['location']}:**\n\n" \
-                   f"**Temperature**: {weather['temperature']}\n" \
-                   f"**Conditions**: {weather['conditions']}\n" \
-                   f"**Humidity**: {weather['humidity']}\n" \
-                   f"**Travel Advice**: {weather['advice']}\n\n" \
-                   f"*Data from verified weather sources*"
-        
-        return f"I don't have weather information for {destination}. I can help with Japan, Paris, London, or New York."
-
-    def get_currency_info(self, destination: str) -> str:
-        """Get currency information - directly without tools"""
-        currency_data = {
-            "japan": {
-                "currency": "Japanese Yen (JPY)",
-                "symbol": "¥",
-                "rate": "1 USD = 150 JPY",
-                "cards": "Limited acceptance, cash is still king",
-                "tipping": "No tipping - it can be considered offensive"
-            },
-            "paris": {
-                "currency": "Euro (EUR)",
-                "symbol": "€",
-                "rate": "1 USD = 0.92 EUR",
-                "cards": "Widely accepted (Visa, Mastercard, Amex)",
-                "tipping": "5-10% for good service in restaurants"
-            },
-            "london": {
-                "currency": "British Pound (GBP)",
-                "symbol": "£", 
-                "rate": "1 USD = 0.79 GBP",
-                "cards": "Universal acceptance, contactless everywhere",
-                "tipping": "10-15% if service charge not included"
-            },
-            "new york": {
-                "currency": "US Dollar (USD)",
-                "symbol": "$",
-                "rate": "Base currency",
-                "cards": "Universal acceptance",
-                "tipping": "18-20% standard in restaurants"
-            }
-        }
-        
-        currency = currency_data.get(destination)
-        if currency:
-            return f"💰 **Currency for {destination.title()}:**\n\n" \
-                   f"**Currency**: {currency['currency']} ({currency['symbol']})\n" \
-                   f"**Exchange Rate**: {currency['rate']}\n" \
-                   f"**Card Acceptance**: {currency['cards']}\n" \
-                   f"**Tipping**: {currency['tipping']}"
-        
-        return f"I don't have currency information for {destination}."
-
-    def get_cultural_info(self, destination: str) -> str:
-        """Get cultural information - directly without tools"""
-        cultural_data = {
-            "japan": {
-                "greeting": "Bow slightly when meeting people",
-                "dining": "Slurping noodles is acceptable and shows appreciation",
-                "etiquette": "Remove shoes when entering homes and some restaurants",
-                "phrases": ["Konnichiwa - Hello", "Arigato - Thank you", "Sumimasen - Excuse me"]
-            },
-            "paris": {
-                "greeting": "Always say 'Bonjour' when entering shops",
-                "dining": "Lunch: 12:00-14:00, Dinner: 19:30-22:00",
-                "etiquette": "Dress well, speak quietly in public",
-                "phrases": ["Bonjour - Hello", "Merci - Thank you", "Excusez-moi - Excuse me"]
-            },
-            "london": {
-                "greeting": "Polite queuing is essential",
-                "dining": "Pub culture is central to social life",
-                "etiquette": "Mind the gap, stand right on escalators", 
-                "phrases": ["Please - Please", "Thank you - Thank you", "Sorry - Excuse me"]
-            },
-            "new york": {
-                "greeting": "Direct and friendly approach",
-                "dining": "Fast-paced dining culture",
-                "etiquette": "Tipping is expected everywhere",
-                "phrases": ["Hi/Hey - Hello", "Thanks - Thank you", "Excuse me - Excuse me"]
-            }
-        }
-        
-        culture = cultural_data.get(destination)
-        if culture:
-            phrases_str = ", ".join(culture['phrases'])
-            return f"🤝 **Cultural Tips for {destination.title()}:**\n\n" \
-                   f"**Greetings**: {culture['greeting']}\n" \
-                   f"**Dining**: {culture['dining']}\n" \
-                   f"**Etiquette**: {culture['etiquette']}\n" \
-                   f"**Key Phrases**: {phrases_str}"
-        
-        return f"I don't have cultural information for {destination}."
-
-    def process_user_input(self, message: str) -> str:
-        """Main method to process all user input"""
-        try:
-            logger.info(f"Processing user input: {message}")
-            message_lower = message.lower()
-            
-            # Handle greetings
-            if any(word in message_lower for word in ['hello', 'hi', 'hey', 'greetings']) and len(message_lower) < 25:
-                return """👋 **Hello! Welcome to TourWithEase!**
-
-I'm the Context Specialist, your travel assistant! I can help you with:
-
-🌟 **My Services:**
-• 🌤️ **Weather** - Current conditions and travel advice
-• 💰 **Currency** - Exchange rates, payments, tipping  
-• 🤝 **Culture** - Local customs, etiquette, phrases
-
-🗺️ **My Destinations:** Japan, Paris, London, New York
-
-💬 **Try asking:** 
-• "What's the weather in Japan?"
-• "Currency info for Paris"
-• "Cultural tips for London"
-
-How can I help you prepare for your trip today? ✈️"""
-            
-            # Extract destination
-            destination = self.extract_destination(message)
-            if not destination:
-                return """🤔 **I'd be happy to help with travel information!**
-
-I didn't catch which destination you're asking about. I can provide information for:
-• **Japan** (Tokyo)
-• **Paris** (France)  
-• **London** (UK)
-• **New York** (USA)
-
-Please try asking:
-• "What's the weather in Japan?"
-• "Tell me about currency in Paris"
-• "Cultural tips for London"
-
-Which destination interests you? 🌍"""
-            
-            # Determine information type and respond directly
-            if any(word in message_lower for word in ['weather', 'temperature', 'climate', 'rain', 'sunny']):
-                return self.get_weather_info(destination)
-            elif any(word in message_lower for word in ['currency', 'money', 'payment', 'exchange']):
-                return self.get_currency_info(destination)
-            elif any(word in message_lower for word in ['culture', 'customs', 'etiquette', 'local']):
-                return self.get_cultural_info(destination)
-            else:
-                # Comprehensive information
-                weather = self.get_weather_info(destination)
-                currency = self.get_currency_info(destination)
-                culture = self.get_cultural_info(destination)
-                return f"**Complete Travel Guide for {destination.title()}**\n\n{weather}\n\n{currency}\n\n{culture}"
-                
-        except Exception as e:
-            logger.error(f"Processing error: {e}", exc_info=True)
-            return f"I apologize, but I encountered an error. Please try asking about weather, currency, or culture for Japan, Paris, London, or New York."
-
-# Create agent
 root_agent = ContextSpecialist()
+logger.info("✅ Context Specialist Agent ready")
 
-# Message processing function  
-def process_user_message(message: str) -> str:
-    logger.info(f"Processing message: {message}")
-    return root_agent.process_user_input(message)
 
-# Hook into ADK (only safe method)
-if hasattr(root_agent, 'generate_response'):
-    def enhanced_generate_response(*args, **kwargs):
-        try:
-            message = args[0] if args else kwargs.get('message', kwargs.get('prompt', ''))
-            if message:
-                return process_user_message(str(message))
-            return "I'm ready to help with your travel planning!"
-        except Exception as e:
-            logger.error(f"Generate response error: {e}")
-            return "Please ask me about weather, currency, or culture for your destination."
-    
-    root_agent.generate_response = enhanced_generate_response
-
-logger.info("✅ Context Specialist Agent ready with gemini-2.5-pro model")

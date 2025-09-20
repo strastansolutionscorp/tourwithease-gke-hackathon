@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   env: {
     COGNITO_LOCAL_URL: "http://localhost:3000",
-    COGNITO_PROD_URL: "https://dev.d3nsakwmjtwece.amplifyapp.com",
+    COGNITO_PROD_URL: "https://main.dua5fhzgqs6mz.amplifyapp.com",
     COGNITO_CLIENT_ID: "3j99l5kkd0g4dije4dg8r9enn7",
     COGNITO_DOMAIN:
       "https://ap-southeast-1ybwkprqn4.auth.ap-southeast-1.amazoncognito.com",
