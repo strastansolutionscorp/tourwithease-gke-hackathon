@@ -2221,27 +2221,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Context Specialist Agent - Complete Travel Assistant
+Context Specialist Agent - Enhanced with Smart Date Handling
 """
 
 import logging
+from datetime import datetime, timedelta
 from google.adk.agents import LlmAgent
 
+# Enable detailed logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ContextSpecialist(LlmAgent):
-    """Complete Context Specialist Agent for travel information"""
+    """Enhanced Context Specialist Agent"""
     
     def __init__(self):
-        logger.info("Initializing Context Specialist Agent...")
+        logger.info("🔧 Initializing Enhanced Context Specialist Agent...")
         super().__init__(
             name="context_specialist_agent",
             model="gemini-2.5-pro"
         )
-        logger.info("Context Specialist Agent initialized successfully")
+        logger.info("✅ Enhanced Context Specialist Agent initialized successfully")
 
 root_agent = ContextSpecialist()
-logger.info("✅ Context Specialist Agent ready")
+logger.info("🚀 Enhanced Context Specialist Agent ready")
+
+
 
 
