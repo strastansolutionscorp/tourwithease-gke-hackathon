@@ -27,7 +27,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   env: {
     // ✅ Read from Amplify environment variables
-    ENV: process.env.ENV || "Prod",
+    ENV: process.env.ENV || "Dev",
     COGNITO_LOCAL_URL: process.env.COGNITO_LOCAL_URL || "http://localhost:3000",
     COGNITO_PROD_URL:
       process.env.COGNITO_PROD_URL ||
