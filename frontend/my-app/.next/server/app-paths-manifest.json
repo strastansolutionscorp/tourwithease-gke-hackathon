@@ -1,1 +1,5 @@
-{}
+{
+  "/api/speech/synthesize/route": "app/api/speech/synthesize/route.js",
+  "/page": "app/page.js",
+  "/callback/page": "app/callback/page.js"
+}

@@ -3,3 +3,4 @@ name: remote_a2a
 description: A helpful assistant for user questions.
 instruction: Answer user questions to the best of your knowledge
 model: gemini-2.5-pro
+

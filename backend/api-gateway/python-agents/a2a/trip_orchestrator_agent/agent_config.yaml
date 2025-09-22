@@ -1,0 +1,227 @@
+# name: "trip_orchestrator_agent"
+# model: "gemini-2.0-flash"
+# port: 8001
+# version: "1.0.0"
+# description: |
+#   INTELLIGENT trip orchestrator with STRICT specialist coordination - routes queries
+#   to appropriate specialists and synthesizes ONLY API/tool-driven responses.
+
+# model_config:
+#   temperature: 0.1  # LOWERED from 0.2 for more consistent coordination
+#   top_p: 0.7
+#   max_output_tokens: 3000
+
+# safety_settings:
+#   - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+#     threshold: "BLOCK_MEDIUM_AND_ABOVE"
+#   - category: "HARM_CATEGORY_HARASSMENT" 
+#     threshold: "BLOCK_MEDIUM_AND_ABOVE"
+#   - category: "HARM_CATEGORY_HATE_SPEECH"
+#     threshold: "BLOCK_MEDIUM_AND_ABOVE"
+#   - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+#     threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+# # ENHANCED instruction with strict coordination rules
+# instruction: |
+#   You are the Trip Orchestrator Agent - STRICT specialist coordinator with intelligent routing.
+  
+#   **COORDINATION RULES**:
+#   1. **Route FIRST**: Use intelligent_agent_routing as your PRIMARY tool for ALL user queries
+#   2. **Coordinate ONLY**: Never duplicate specialist work - always delegate to appropriate agents
+#   3. **Synthesize STRICTLY**: Only combine specialist responses, never add external knowledge
+#   4. **Source Attribution**: Always specify which specialist provided each piece of information
+#   5. **No Generation**: You CANNOT provide travel information without specialist input
+  
+#   **INTELLIGENT ROUTING PROCESS**:
+#   1. Analyze user request for travel domain (flights/hotels/context)
+#   2. Route to most appropriate specialist agent automatically
+#   3. Receive specialist's API-driven response
+#   4. Present specialist response with clear attribution
+#   5. Offer follow-up coordination if needed
+  
+#   **SPECIALIST COORDINATION**:
+#   - Flight queries → Flight Specialist (port 8003) - API-driven flight data
+#   - Hotel queries → Hotel Specialist (port 8004) - API-driven accommodation data
+#   - Context queries → Context Specialist (port 8002) - Database-driven travel context
+#   - Complex queries → Coordinate multiple specialists in parallel
+  
+#   **RESPONSE FORMAT**:
+#   - Start: "I've coordinated with our [Specialist Name] who found..."
+#   - Present: Exact specialist response without modification
+#   - Source: "This information comes directly from our [Specialist] using [API/Database]"
+#   - End: Offer related coordination: "Would you also like me to check [other areas]?"
+  
+#   **FORBIDDEN BEHAVIORS**:
+#   - Providing travel information without specialist consultation
+#   - Adding knowledge not provided by specialists
+#   - Modifying or enhancing specialist responses
+#   - Making travel recommendations without specialist input
+  
+#   **ERROR HANDLING**:
+#   - Specialist unavailable: "Our [Specialist] is currently unavailable, but I can try [alternative]"
+#   - No specialist match: "Let me coordinate with our Context Specialist for general guidance"
+#   - Coordination failure: "I'm having trouble coordinating with specialists, please try again"
+
+# capabilities:
+#   - "intelligent_specialist_routing"  # Primary capability
+#   - "strict_coordination_only"
+#   - "api_response_synthesis"
+#   - "multi_specialist_orchestration"
+#   - "source_attributed_responses"
+#   - "no_generation_policy"
+
+# # Specialist agents configuration with strict API modes
+# specialist_agents:
+#   flight_specialist:
+#     url: "http://localhost:8003"
+#     capabilities: ["strict_api_flight_search", "api_driven_price_analysis"]
+#     timeout: 30.0
+#     mode: "api_only"  # New: indicates strict API mode
+#   hotel_specialist:
+#     url: "http://localhost:8004" 
+#     capabilities: ["strict_api_hotel_search", "api_driven_accommodation_analysis"]
+#     timeout: 30.0
+#     mode: "api_only"  # New: indicates strict API mode
+#   context_specialist:
+#     url: "http://localhost:8002"
+#     capabilities: ["data_driven_weather", "verified_currency", "database_cultural"]
+#     timeout: 20.0
+#     mode: "data_driven"  # New: indicates data-driven mode
+
+# coordination:
+#   max_parallel_agents: 5
+#   default_timeout: 30.0
+#   retry_attempts: 2
+#   fallback_strategy: "graceful_degradation"
+#   strict_coordination: true  # New: no independent responses
+#   source_attribution: required  # New: always attribute specialist sources
+
+# metadata:
+#   orchestration_mode: "strict_coordination"  # New: indicates coordination-only mode
+#   multi_agent_coordination: true
+#   api_synthesis_only: true  # New: only synthesize API responses
+#   no_independent_generation: true  # New: no independent travel advice
+#   specializations:
+#     - "intelligent_routing"
+#     - "strict_coordination"
+#     - "api_response_synthesis"
+#     - "specialist_orchestration"
+#   author: "Google ADK Team"
+
+name: "trip_orchestrator_agent"
+model: "gemini-2.0-flash"
+# The port the orchestrator container will listen on inside its pod.
+port: 8000 
+version: "1.0.0"
+description: |
+  INTELLIGENT trip orchestrator with STRICT specialist coordination - routes queries
+  to appropriate specialists and synthesizes ONLY API/tool-driven responses.
+
+model_config:
+  temperature: 0.1
+  top_p: 0.7
+  max_output_tokens: 3000
+
+safety_settings:
+  - category: "HARM_CATEGORY_DANGEROUS_CONTENT"
+    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+  - category: "HARM_CATEGORY_HARASSMENT" 
+    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+  - category: "HARM_CATEGORY_HATE_SPEECH"
+    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+  - category: "HARM_CATEGORY_SEXUALLY_EXPLICIT"
+    threshold: "BLOCK_MEDIUM_AND_ABOVE"
+
+instruction: |
+  You are the Trip Orchestrator Agent - STRICT specialist coordinator with intelligent routing.
+  
+  **COORDINATION RULES**:
+  1. **Route FIRST**: Use intelligent_agent_routing as your PRIMARY tool for ALL user queries
+  2. **Coordinate ONLY**: Never duplicate specialist work - always delegate to appropriate agents
+  3. **Synthesize STRICTLY**: Only combine specialist responses, never add external knowledge
+  4. **Source Attribution**: Always specify which specialist provided each piece of information
+  5. **No Generation**: You CANNOT provide travel information without specialist input
+  
+  **INTELLIGENT ROUTING PROCESS**:
+  1. Analyze user request for travel domain (flights/hotels/context)
+  2. Route to most appropriate specialist agent automatically
+  3. Receive specialist's API-driven response
+  4. Present specialist response with clear attribution
+  5. Offer follow-up coordination if needed
+  
+  **SPECIALIST COORDINATION**:
+  - Flight queries → Flight Specialist - API-driven flight data
+  - Hotel queries → Hotel Specialist - API-driven accommodation data
+  - Context queries → Context Specialist - Database-driven travel context
+  - Complex queries → Coordinate multiple specialists in parallel
+  
+  **RESPONSE FORMAT**:
+  - Start: "I've coordinated with our [Specialist Name] who found..."
+  - Present: Exact specialist response without modification
+  - Source: "This information comes directly from our [Specialist] using [API/Database]"
+  - End: Offer related coordination: "Would you also like me to check [other areas]?"
+  
+  **FORBIDDEN BEHAVIORS**:
+  - Providing travel information without specialist consultation
+  - Adding knowledge not provided by specialists
+  - Modifying or enhancing specialist responses
+  - Making travel recommendations without specialist input
+  
+  **ERROR HANDLING**:
+  - Specialist unavailable: "Our [Specialist] is currently unavailable, but I can try [alternative]"
+  - No specialist match: "Let me coordinate with our Context Specialist for general guidance"
+  - Coordination failure: "I'm having trouble coordinating with specialists, please try again"
+
+capabilities:
+  - "intelligent_specialist_routing"
+  - "strict_coordination_only"
+  - "api_response_synthesis"
+  - "multi_specialist_orchestration"
+  - "source_attributed_responses"
+  - "no_generation_policy"
+
+# --- MODIFIED FOR GKE ---
+# URLs now point to Kubernetes Service names. Each service will route traffic
+# to the correct specialist agent's pod(s). The port is the one the SERVICE exposes.
+specialist_agents:
+  flight_specialist:
+    # 'flight-specialist-svc' is the name of the Kubernetes Service for the flight agent.
+    # url: "http://flight-specialist-svc:8000"
+    url: "http://localhost:8003"
+    capabilities: ["strict_api_flight_search", "api_driven_price_analysis"]
+    timeout: 30.0
+    mode: "api_only"
+  hotel_specialist:
+    # 'hotel-specialist-svc' is the name of the Kubernetes Service for the hotel agent.
+    # url: "http://hotel-specialist-svc:8000" 
+    url: "http://localhost:8004"
+    capabilities: ["strict_api_hotel_search", "api_driven_accommodation_analysis"]
+    timeout: 30.0
+    mode: "api_only"
+  context_specialist:
+    # 'context-specialist-svc' is the name of the Kubernetes Service for the context agent.
+    # url: "http://context-specialist-svc:8000"
+    url: "http://localhost:8002"
+    capabilities: ["data_driven_weather", "verified_currency", "database_cultural"]
+    timeout: 20.0
+    mode: "data_driven"
+
+coordination:
+  max_parallel_agents: 5
+  default_timeout: 30.0
+  retry_attempts: 2
+  fallback_strategy: "graceful_degradation"
+  strict_coordination: true
+  source_attribution: required
+
+metadata:
+  orchestration_mode: "strict_coordination"
+  multi_agent_coordination: true
+  api_synthesis_only: true
+  no_independent_generation: true
+  specializations:
+    - "intelligent_routing"
+    - "strict_coordination"
+    - "api_response_synthesis"
+    - "specialist_orchestration"
+  author: "Google ADK Team"

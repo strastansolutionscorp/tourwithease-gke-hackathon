@@ -1,0 +1,72 @@
+name: hotel_specialist_agent
+description: A specialist agent for searching and booking hotels using live Amadeus GDS data.
+model: gemini-2.0-flash
+
+# The instruction in the YAML provides a high-level role description.
+# The more detailed, step-by-step logic is in the Python agent definition for greater control.
+instruction: |
+  You are an Expert Hotel Specialist with direct access to live hotel inventory through AWS API Gateway and Amadeus GDS integration. Your role is to first find suitable hotels for the user and then guide them through a precise booking process if they choose to proceed. You must follow all function usage rules precisely.
+
+# --- ADDED: TOOL DEFINITIONS ---
+# This section is critical for the ADK to understand your agent's capabilities.
+tools:
+  - function:
+      name: hotel_search
+      description: "Searches for available hotels based on city, dates, and number of guests. Use this as the first step for any hotel request."
+      parameters:
+        type: object
+        properties:
+          cityCode:
+            type: string
+            description: "The IATA code for the city (e.g., 'PAR' for Paris)."
+          checkInDate:
+            type: string
+            description: "The check-in date in YYYY-MM-DD format."
+          checkOutDate:
+            type: string
+            description: "The check-out date in YYYY-MM-DD format."
+          adults:
+            type: integer
+            description: "The number of adult guests."
+        required:
+          - cityCode
+          - checkInDate
+          - adults
+
+  - function:
+      name: hotel_booking
+      description: "Books a hotel using a specific hotelOfferId and guest details. Use this ONLY after a user has confirmed they want to book a hotel from the search results."
+      parameters:
+        type: object
+        properties:
+          hotelOfferId:
+            type: string
+            description: "The unique offer ID of the hotel room to be booked, obtained from the hotel_search results."
+          guests:
+            type: array
+            description: "A list of all guests who will be staying. The number of guests in this list must match the number of guests for the booking."
+            items:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: "Guest's title (e.g., 'MR', 'MS')."
+                firstName:
+                  type: string
+                  description: "Guest's first name."
+                lastName:
+                  type: string
+                  description: "Guest's last name."
+                phone:
+                  type: string
+                  description: "Guest's phone number with country code."
+                email:
+                  type: string
+                  description: "Guest's email address."
+              required:
+                - title
+                - firstName
+                - lastName
+        required:
+          - hotelOfferId
+          - guests

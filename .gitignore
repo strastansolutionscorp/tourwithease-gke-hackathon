@@ -18,3 +18,20 @@ yarn-error.log*
 
 # terraform
 **/.terraform
+
+# Python virtual environments
+venv/
+.venv/
+env/
+.env/
+**/venv/
+**/.venv/
+**/env/
+**/.env/
+ENV/
+.ENV/
+**/ENV/
+**/.ENV/
+__pycache__/
+*.py[cod]
+*$py.class

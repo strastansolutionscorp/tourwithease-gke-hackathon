@@ -2217,35 +2217,854 @@
 
 # logger.info("✅ Context Specialist Agent ready with Open-Meteo integration (NO API KEY NEEDED!)")
 
-#5
+
+#5 (Working)
+# #!/usr/bin/env python3
+# # -*- coding: utf-8 -*-
+# """
+# Context Specialist Agent - Enhanced with Smart Date Handling
+# """
+
+# import logging
+# from datetime import datetime, timedelta
+# from google.adk.agents import LlmAgent
+
+# # Enable detailed logging
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+
+# class ContextSpecialist(LlmAgent):
+#     """Enhanced Context Specialist Agent"""
+    
+#     def __init__(self):
+#         logger.info("🔧 Initializing Enhanced Context Specialist Agent...")
+#         super().__init__(
+#             name="context_specialist_agent",
+#             model="gemini-2.5-pro"
+#         )
+#         logger.info("✅ Enhanced Context Specialist Agent initialized successfully")
+
+# root_agent = ContextSpecialist()
+# logger.info("🚀 Enhanced Context Specialist Agent ready")
+
+
+#6 (Working and stored in self sessions dictionary)
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Context Specialist Agent - Enhanced with Smart Date Handling
+Context Specialist Agent - Enhanced with Vertex AI Session Management and Engine ID
 """
 
 import logging
+import uuid
+import os
 from datetime import datetime, timedelta
+from typing import Dict, Any, Optional, List
 from google.adk.agents import LlmAgent
+from google.cloud import aiplatform
+from pydantic import BaseModel, Field, PrivateAttr
 
 # Enable detailed logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=os.getenv('LOG_LEVEL', 'INFO'),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 class ContextSpecialist(LlmAgent):
-    """Enhanced Context Specialist Agent"""
+    """Enhanced Context Specialist Agent with Vertex AI Integration"""
+    
+    # Define private attributes for Pydantic
+    _project_id: str = PrivateAttr()
+    _location: str = PrivateAttr()
+    _engine_id: str = PrivateAttr()
+    _sessions: Dict[str, Dict[str, Any]] = PrivateAttr(default={})
     
     def __init__(self):
         logger.info("🔧 Initializing Enhanced Context Specialist Agent...")
+        
+        # Initialize base LLM Agent first
         super().__init__(
             name="context_specialist_agent",
-            model="gemini-2.5-pro"
+            model=os.getenv('ADK_MODEL', 'gemini-2.5-pro')
         )
+        
+        # Initialize private attributes
+        self._project_id = os.getenv('VERTEX_AI_PROJECT', 'agentic-travel-ai-solutions')
+        self._location = os.getenv('VERTEX_AI_LOCATION', 'us-central1')
+        
+        # Initialize Vertex AI
+        aiplatform.init(
+            project=self._project_id,
+            location=self._location
+        )
+        
+        # Initialize Engine ID
+        self._engine_id = self._initialize_engine_id()
+        logger.info(f"🔑 Agent Engine ID: {self._engine_id}")
+        
         logger.info("✅ Enhanced Context Specialist Agent initialized successfully")
+    
+    def _initialize_engine_id(self) -> str:
+        """Initialize and retrieve Vertex AI Engine ID"""
+        try:
+            base_id = f"{self._project_id}-{self._location}"
+            engine_id = uuid.uuid5(uuid.NAMESPACE_DNS, base_id)
+            return f"vertex-{engine_id}"
+        except Exception as e:
+            logger.warning(f"⚠️ Could not generate Vertex AI Engine ID: {e}")
+            return f"local-{uuid.uuid4()}"
 
+    async def create_session(self, user_id: str) -> str:
+        """Create a new Vertex AI session"""
+        try:
+            session_id = f"{self._engine_id}-{user_id}-{datetime.utcnow().isoformat()}"
+            
+            session = {
+                "session_id": session_id,
+                "engine_id": self._engine_id,
+                "user_id": user_id,
+                "created_at": datetime.utcnow(),
+                "last_active": datetime.utcnow(),
+                "history": [],
+                "state": {},
+                "project_id": self._project_id,
+                "location": self._location
+            }
+            
+            self._sessions[session_id] = session
+            logger.info(f"📝 Created new session: {session_id}")
+            return session_id
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to create session: {e}")
+            raise
+
+    async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve an existing Vertex AI session"""
+        try:
+            session = self._sessions.get(session_id)
+            if session:
+                session["last_active"] = datetime.utcnow()
+            return session
+        except Exception as e:
+            logger.error(f"❌ Failed to retrieve session: {e}")
+            return None
+
+    async def save_interaction(self, session_id: str, message: str, response: str) -> bool:
+        """Save an interaction to the Vertex AI session history"""
+        try:
+            session = await self.get_session(session_id)
+            if not session:
+                logger.error(f"❌ Session not found: {session_id}")
+                return False
+            
+            session["history"].append({
+                "timestamp": datetime.utcnow(),
+                "message": message,
+                "response": response
+            })
+            
+            logger.info(f"💾 Saved interaction to session: {session_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to save interaction: {e}")
+            return False
+
+    async def run(self, message: str, session_state: Optional[Dict] = None) -> str:
+        """Override run method to handle Vertex AI sessions"""
+        try:
+            user_id = session_state.get('user_id', 'default_user') if session_state else 'default_user'
+            session_id = session_state.get('session_id')
+            session = await self.get_session(session_state.get('session_id'))
+            logger.info(f"💭 Current session history: {len(session['history'])} messages")
+            logger.info(f"🕒 Session active since: {session['created_at']}")
+            
+            if not session_id:
+                session_id = await self.create_session(user_id)
+            
+            session_state = session_state or {}
+            session_state.update({
+                'temperature': float(os.getenv('ADK_TEMPERATURE', 0.7)),
+                'max_output_tokens': int(os.getenv('ADK_MAX_OUTPUT_TOKENS', 1024))
+            })
+            
+            response = await super().run(message, session_state)
+            await self.save_interaction(session_id, message, response)
+            
+            logger.info(f"🔄 Processing in session: {session_id}")
+            logger.info(f"👤 User: {user_id}")
+            logger.info(f"🔑 Engine ID: {self._engine_id}")
+            
+            return response
+            
+        except Exception as e:
+            logger.error(f"❌ Error processing message: {e}")
+            raise
+
+    def get_engine_id(self) -> str:
+        """Get the current Vertex AI Engine ID"""
+        return self._engine_id
+
+# Initialize the root agent
 root_agent = ContextSpecialist()
-logger.info("🚀 Enhanced Context Specialist Agent ready")
+logger.info(f"🚀 Enhanced Context Specialist Agent ready with Engine ID: {root_agent.get_engine_id()}")
 
+7
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Context Specialist Agent - Enhanced with Vertex AI Session Management and Optimized Cloud Storage
+"""
 
+# import logging
+# import uuid
+# import os
+# import asyncio
+# from datetime import datetime, timedelta
+# from typing import Dict, Any, Optional, List
+# from google.adk.agents import LlmAgent
+# from google.cloud import aiplatform, storage
+# from google.auth import default
+# from google.api_core import exceptions as gcp_exceptions
+# from pydantic import BaseModel, Field, PrivateAttr
+# import json
+# # import aiofiles
+# # import tempfile
 
+# # Enable detailed logging
+# logging.basicConfig(
+#     level=os.getenv('LOG_LEVEL', 'INFO'),
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# )
+# logger = logging.getLogger(__name__)
 
+# class ContextSpecialist(LlmAgent):
+#     """Enhanced Context Specialist Agent with Vertex AI Integration and Optimized Cloud Storage"""
+    
+#     # Define private attributes for Pydantic
+#     _project_id: str = PrivateAttr()
+#     _location: str = PrivateAttr()
+#     _engine_id: str = PrivateAttr()
+#     _sessions: Dict[str, Dict[str, Any]] = PrivateAttr(default={})
+#     _bucket_name: str = PrivateAttr()
+#     _storage_client: Any = PrivateAttr()
+#     _bucket: Any = PrivateAttr()
+#     _local_cache: Dict[str, Dict[str, Any]] = PrivateAttr(default={})
+#     _cache_timeout: int = PrivateAttr(default=300)  # 5 minutes cache
+
+#     def __init__(self):
+#         logger.info("🔧 Initializing Enhanced Context Specialist Agent...")
+        
+#         try:
+#             # Initialize base LLM Agent first
+#             super().__init__(
+#                 name="context_specialist_agent",
+#                 model=os.getenv('ADK_MODEL', 'gemini-2.5-pro')
+#             )
+            
+#             # Initialize private attributes
+#             self._project_id = os.getenv('VERTEX_AI_PROJECT', 'agentic-travel-ai-solutions')
+#             self._location = os.getenv('VERTEX_AI_LOCATION', 'us-central1')
+            
+#             # Enhanced authentication with fallback
+#             self._setup_authentication()
+            
+#             # Initialize Cloud Storage with improved error handling
+#             self._setup_cloud_storage()
+            
+#             # Initialize Engine ID
+#             self._engine_id = self._initialize_engine_id()
+#             logger.info(f"🔑 Agent Engine ID: {self._engine_id}")
+            
+#             # Initialize local cache for performance
+#             self._local_cache = {}
+#             self._cache_timeout = int(os.getenv('CACHE_TIMEOUT', 300))
+            
+#             logger.info("✅ Enhanced Context Specialist Agent initialized successfully")
+            
+#         except Exception as e:
+#             logger.error(f"❌ Initialization error: {e}")
+#             raise
+
+#     def _setup_authentication(self):
+#         """Enhanced authentication setup with better error handling"""
+#         try:
+#             # Try to get default credentials
+#             credentials, detected_project = default()
+#             logger.info(f"✅ Using default credentials for project: {detected_project}")
+            
+#             # Set quota project to resolve the warning
+#             if hasattr(credentials, 'quota_project_id'):
+#                 credentials.quota_project_id = self._project_id
+#                 logger.info(f"🔧 Set quota project: {self._project_id}")
+            
+#             # Initialize Vertex AI with proper credentials
+#             aiplatform.init(
+#                 project=self._project_id,
+#                 location=self._location,
+#                 credentials=credentials
+#             )
+            
+#             self._credentials = credentials
+#             logger.info("✅ Authentication setup completed")
+            
+#         except Exception as e:
+#             logger.error(f"❌ Authentication setup failed: {e}")
+#             logger.info("💡 Make sure to run: gcloud auth application-default set-quota-project agentic-travel-ai-solutions")
+#             # Continue without credentials for local testing
+#             self._credentials = None
+
+#     def _setup_cloud_storage(self):
+#         """Enhanced Cloud Storage setup with better error handling"""
+#         try:
+#             # Use environment variable for bucket name with fallback
+#             self._bucket_name = os.getenv('GCS_BUCKET_NAME', 'agentic-travel-ai-solutions_bucket')
+            
+#             # Initialize Cloud Storage client
+#             if self._credentials:
+#                 self._storage_client = storage.Client(
+#                     project=self._project_id,
+#                     credentials=self._credentials
+#                 )
+#             else:
+#                 # Fallback to default client
+#                 self._storage_client = storage.Client(project=self._project_id)
+            
+#             # Get or create bucket
+#             try:
+#                 self._bucket = self._storage_client.bucket(self._bucket_name)
+#                 # Test bucket access
+#                 self._bucket.reload()
+#                 logger.info(f"✅ Connected to Cloud Storage bucket: {self._bucket_name}")
+                
+#             except gcp_exceptions.NotFound:
+#                 logger.warning(f"⚠️ Bucket {self._bucket_name} not found. Attempting to create...")
+#                 self._create_bucket()
+                
+#         except Exception as e:
+#             logger.error(f"❌ Cloud Storage setup failed: {e}")
+#             logger.warning("🔄 Falling back to local session storage")
+#             self._storage_client = None
+#             self._bucket = None
+
+#     def _create_bucket(self):
+#         """Create Cloud Storage bucket with proper configuration"""
+#         try:
+#             bucket = self._storage_client.bucket(self._bucket_name)
+#             bucket.location = self._location.upper().replace('-', '_')  # Convert region format
+#             bucket.storage_class = "STANDARD"
+            
+#             # Create the bucket
+#             bucket = self._storage_client.create_bucket(bucket, location=self._location)
+            
+#             # Set lifecycle policy to auto-delete old sessions
+#             bucket.lifecycle_rules = [{
+#                 'action': {'type': 'Delete'},
+#                 'condition': {'age': 30}  # Delete after 30 days
+#             }]
+#             bucket.patch()
+            
+#             self._bucket = bucket
+#             logger.info(f"✅ Created Cloud Storage bucket: {self._bucket_name}")
+            
+#         except Exception as e:
+#             logger.error(f"❌ Failed to create bucket: {e}")
+#             raise
+
+#     def _initialize_engine_id(self) -> str:
+#         """Initialize and retrieve Vertex AI Engine ID with better generation"""
+#         try:
+#             # Create a more meaningful engine ID
+#             timestamp = datetime.utcnow().strftime("%Y%m%d")
+#             base_id = f"context-specialist-{self._project_id}-{timestamp}"
+#             engine_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, base_id))[:12]
+#             return f"vertex-engine-{engine_id}"
+#         except Exception as e:
+#             logger.warning(f"⚠️ Could not generate Vertex AI Engine ID: {e}")
+#             return f"local-engine-{uuid.uuid4().hex[:12]}"
+
+#     async def _save_session_to_storage(self, session_id: str, session_data: Dict) -> bool:
+#         """Enhanced session saving with caching and fallback"""
+#         try:
+#             # Update local cache first
+#             self._local_cache[session_id] = {
+#                 'data': session_data.copy(),
+#                 'timestamp': datetime.utcnow(),
+#                 'dirty': True
+#             }
+            
+#             # If Cloud Storage is available, save there too
+#             if self._bucket:
+#                 try:
+#                     # Compress and optimize the data
+#                     optimized_data = self._optimize_session_data(session_data)
+                    
+#                     # Use correct path structure matching your bucket
+#                     blob_path = f"agent_engine/sessions/{session_id[:2]}/{session_id}.json"
+#                     blob = self._bucket.blob(blob_path)
+                    
+#                     # Add metadata
+#                     blob.metadata = {
+#                         'user_id': session_data.get('user_id', 'unknown'),
+#                         'created_at': session_data.get('created_at', ''),
+#                         'engine_id': self._engine_id
+#                     }
+                    
+#                     blob.upload_from_string(
+#                         json.dumps(optimized_data, default=str, separators=(',', ':')),
+#                         content_type='application/json'
+#                     )
+                    
+#                     logger.debug(f"💾 Saved session to Cloud Storage: {session_id}")
+#                     self._local_cache[session_id]['dirty'] = False
+#                     return True
+                    
+#                 except Exception as e:
+#                     logger.warning(f"⚠️ Cloud Storage save failed, using cache: {e}")
+#                     return True  # Still successful due to cache
+#             else:
+#                 logger.debug(f"💾 Saved session to local cache: {session_id}")
+#                 return True
+                
+#         except Exception as e:
+#             logger.error(f"❌ Failed to save session: {e}")
+#             return False
+
+#     async def _load_session_from_storage(self, session_id: str) -> Optional[Dict]:
+#         """Enhanced session loading with caching and fallback"""
+#         try:
+#             # Check local cache first
+#             if session_id in self._local_cache:
+#                 cache_entry = self._local_cache[session_id]
+#                 cache_age = (datetime.utcnow() - cache_entry['timestamp']).seconds
+                
+#                 if cache_age < self._cache_timeout:
+#                     logger.debug(f"📂 Loaded session from cache: {session_id}")
+#                     return cache_entry['data']
+            
+#             # Try to load from Cloud Storage
+#             if self._bucket:
+#                 try:
+#                     # Use correct path structure matching your bucket
+#                     blob_path = f"agent_engine/sessions/{session_id[:2]}/{session_id}.json"
+#                     blob = self._bucket.blob(blob_path)
+                    
+#                     if blob.exists():
+#                         data = json.loads(blob.download_as_string())
+                        
+#                         # Update cache
+#                         self._local_cache[session_id] = {
+#                             'data': data,
+#                             'timestamp': datetime.utcnow(),
+#                             'dirty': False
+#                         }
+                        
+#                         logger.debug(f"📂 Loaded session from Cloud Storage: {session_id}")
+#                         return data
+                        
+#                 except Exception as e:
+#                     logger.warning(f"⚠️ Cloud Storage load failed: {e}")
+            
+#             # Check if we have it in cache even if expired
+#             if session_id in self._local_cache:
+#                 logger.debug(f"📂 Loaded expired session from cache: {session_id}")
+#                 return self._local_cache[session_id]['data']
+            
+#             return None
+            
+#         except Exception as e:
+#             logger.error(f"❌ Failed to load session: {e}")
+#             return None
+
+#     def _optimize_session_data(self, session_data: Dict) -> Dict:
+#         """Optimize session data for storage"""
+#         optimized = session_data.copy()
+        
+#         # Limit history size to prevent bloat
+#         if 'history' in optimized and len(optimized['history']) > 50:
+#             # Keep first 5 and last 45 interactions
+#             optimized['history'] = optimized['history'][:5] + optimized['history'][-45:]
+#             optimized['history_truncated'] = True
+        
+#         # Remove or compress large fields
+#         if 'debug_info' in optimized:
+#             del optimized['debug_info']
+        
+#         return optimized
+
+#     async def create_session(self, user_id: str, metadata: Optional[Dict] = None) -> str:
+#         """Create a new Vertex AI session with enhanced features"""
+#         try:
+#             # Generate unique session ID
+#             session_uuid = uuid.uuid4().hex
+#             session_id = f"{self._engine_id}-{user_id}-{session_uuid[:8]}"
+            
+#             # Create session data
+#             session = {
+#                 "session_id": session_id,
+#                 "engine_id": self._engine_id,
+#                 "user_id": user_id,
+#                 "created_at": datetime.utcnow().isoformat(),
+#                 "last_active": datetime.utcnow().isoformat(),
+#                 "history": [],
+#                 "state": metadata or {},
+#                 "project_id": self._project_id,
+#                 "location": self._location,
+#                 "interaction_count": 0,
+#                 "travel_context": {
+#                     "preferred_destinations": [],
+#                     "budget_range": None,
+#                     "travel_dates": None,
+#                     "interests": []
+#                 }
+#             }
+            
+#             # Save to storage
+#             await self._save_session_to_storage(session_id, session)
+            
+#             logger.info(f"📝 Created new session: {session_id} for user: {user_id}")
+#             return session_id
+            
+#         except Exception as e:
+#             logger.error(f"❌ Failed to create session: {e}")
+#             raise
+
+#     async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+#         """Retrieve an existing session with automatic updates"""
+#         try:
+#             session = await self._load_session_from_storage(session_id)
+            
+#             if session:
+#                 # Update last active timestamp
+#                 session["last_active"] = datetime.utcnow().isoformat()
+                
+#                 # Save updated timestamp (async to avoid blocking)
+#                 asyncio.create_task(self._save_session_to_storage(session_id, session))
+                
+#                 logger.debug(f"📖 Retrieved session: {session_id}")
+#                 return session
+            
+#             logger.debug(f"❓ Session not found: {session_id}")
+#             return None
+            
+#         except Exception as e:
+#             logger.error(f"❌ Failed to retrieve session: {e}")
+#             return None
+
+#     async def save_interaction(self, session_id: str, message: str, response: str, 
+#                              interaction_type: str = "chat") -> bool:
+#         """Save an interaction with enhanced context tracking"""
+#         try:
+#             session = await self._load_session_from_storage(session_id)
+#             if not session:
+#                 logger.error(f"❌ Session not found for interaction: {session_id}")
+#                 return False
+            
+#             # Create interaction record
+#             interaction = {
+#                 "timestamp": datetime.utcnow().isoformat(),
+#                 "type": interaction_type,
+#                 "message": message,
+#                 "response": response,
+#                 "message_length": len(message),
+#                 "response_length": len(response)
+#             }
+            
+#             # Extract travel context from the interaction
+#             travel_context = self._extract_travel_context(message, response)
+#             if travel_context:
+#                 session["travel_context"].update(travel_context)
+            
+#             # Add to history
+#             session["history"].append(interaction)
+#             session["interaction_count"] = session.get("interaction_count", 0) + 1
+#             session["last_active"] = datetime.utcnow().isoformat()
+            
+#             # Save updated session
+#             await self._save_session_to_storage(session_id, session)
+            
+#             logger.info(f"💾 Saved interaction #{session['interaction_count']} to session: {session_id}")
+#             return True
+            
+#         except Exception as e:
+#             logger.error(f"❌ Failed to save interaction: {e}")
+#             return False
+
+#     def _extract_travel_context(self, message: str, response: str) -> Dict[str, Any]:
+#         """Extract travel-related context from interactions"""
+#         context = {}
+#         message_lower = message.lower()
+        
+#         # Extract destinations
+#         destinations = ["singapore", "bangkok", "tokyo", "london", "paris", "new york", 
+#                        "rome", "sydney", "hong kong", "kuala lumpur", "bali", "phuket"]
+#         mentioned_destinations = [dest for dest in destinations if dest in message_lower]
+#         if mentioned_destinations:
+#             context["recent_destinations"] = mentioned_destinations
+        
+#         # Extract budget indicators
+#         budget_keywords = ["budget", "cheap", "expensive", "luxury", "backpack", "premium"]
+#         mentioned_budget = [kw for kw in budget_keywords if kw in message_lower]
+#         if mentioned_budget:
+#             context["budget_preferences"] = mentioned_budget
+        
+#         # Extract activity interests
+#         activities = ["culture", "food", "beach", "hiking", "shopping", "nightlife", 
+#                      "museum", "temple", "adventure", "relaxation"]
+#         mentioned_activities = [act for act in activities if act in message_lower]
+#         if mentioned_activities:
+#             context["activity_interests"] = mentioned_activities
+        
+#         return context
+
+#     async def run(self, message: str, session_state: Optional[Dict] = None) -> str:
+#         """Enhanced run method with better session handling"""
+#         try:
+#             # Extract or create session info
+#             user_id = session_state.get('user_id', f'user_{uuid.uuid4().hex[:8]}') if session_state else f'user_{uuid.uuid4().hex[:8]}'
+#             session_id = session_state.get('session_id') if session_state else None
+            
+#             # Create session if it doesn't exist
+#             if not session_id:
+#                 session_id = await self.create_session(user_id, session_state)
+#                 if session_state:
+#                     session_state['session_id'] = session_id
+            
+#             # Load session context
+#             session = await self._load_session_from_storage(session_id)
+#             context_info = ""
+            
+#             if session:
+#                 history_count = len(session.get('history', []))
+#                 travel_context = session.get('travel_context', {})
+                
+#                 logger.info(f"💭 Session context: {history_count} previous interactions")
+                
+#                 # Add travel context to the prompt if available
+#                 if travel_context.get('recent_destinations'):
+#                     context_info += f"\n[Travel Context: User interested in {', '.join(travel_context['recent_destinations'])}]"
+                
+#                 if travel_context.get('budget_preferences'):
+#                     context_info += f"\n[Budget Context: User preferences - {', '.join(travel_context['budget_preferences'])}]"
+            
+#             # Enhance session state with our settings
+#             enhanced_state = session_state or {}
+#             enhanced_state.update({
+#                 'temperature': float(os.getenv('ADK_TEMPERATURE', 0.7)),
+#                 'max_output_tokens': int(os.getenv('ADK_MAX_OUTPUT_TOKENS', 1024)),
+#                 'session_id': session_id,
+#                 'user_id': user_id
+#             })
+            
+#             # Add context to message if available
+#             enhanced_message = message + context_info
+            
+#             # Call parent run method
+#             response = await super().run(enhanced_message, enhanced_state)
+            
+#             # Save interaction asynchronously
+#             interaction_type = self._classify_message_type(message)
+#             asyncio.create_task(
+#                 self.save_interaction(session_id, message, response, interaction_type)
+#             )
+            
+#             logger.info(f"🔄 Processed message in session: {session_id}")
+#             logger.debug(f"👤 User: {user_id} | 🔑 Engine: {self._engine_id}")
+            
+#             return response
+            
+#         except Exception as e:
+#             logger.error(f"❌ Error processing message: {e}")
+#             raise
+
+#     def _classify_message_type(self, message: str) -> str:
+#         """Classify the type of message for better categorization"""
+#         message_lower = message.lower()
+        
+#         if any(word in message_lower for word in ["weather", "temperature", "rain", "sunny"]):
+#             return "weather"
+#         elif any(word in message_lower for word in ["currency", "exchange", "money", "cost"]):
+#             return "currency"
+#         elif any(word in message_lower for word in ["culture", "custom", "tradition", "local"]):
+#             return "cultural"
+#         elif any(word in message_lower for word in ["flight", "hotel", "booking", "reservation"]):
+#             return "booking"
+#         else:
+#             return "general"
+
+#     async def cleanup_session(self, session_id: str) -> bool:
+#         """Enhanced session cleanup"""
+#         try:
+#             # Remove from local cache
+#             if session_id in self._local_cache:
+#                 del self._local_cache[session_id]
+            
+#             # Archive in Cloud Storage instead of deleting
+#             if self._bucket:
+#                 try:
+#                     source_blob = self._bucket.blob(f"agent_engine/sessions/{session_id[:2]}/{session_id}.json")
+#                     if source_blob.exists():
+#                         # Move to archive folder
+#                         archive_blob = self._bucket.blob(f"agent_engine/archived_sessions/{session_id[:2]}/{session_id}.json")
+#                         archive_blob.upload_from_string(source_blob.download_as_string())
+#                         source_blob.delete()
+                        
+#                     logger.info(f"📁 Archived session: {session_id}")
+#                     return True
+                    
+#                 except Exception as e:
+#                     logger.error(f"❌ Failed to archive session: {e}")
+#                     return False
+            
+#             logger.info(f"🧹 Cleaned up session from cache: {session_id}")
+#             return True
+            
+#         except Exception as e:
+#             logger.error(f"❌ Failed to cleanup session: {e}")
+#             return False
+
+#     async def list_active_sessions(self, user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+#         """Enhanced session listing with filtering and pagination"""
+#         try:
+#             sessions = []
+            
+#             # Check local cache first
+#             for cached_id, cached_data in self._local_cache.items():
+#                 if cached_data['data'].get('user_id') == user_id:
+#                     sessions.append(cached_data['data'])
+            
+#             # If we have Cloud Storage, get more sessions
+#             if self._bucket and len(sessions) < limit:
+#                 try:
+#                     blobs = self._bucket.list_blobs(prefix='agent_engine/sessions/')
+#                     session_count = 0
+                    
+#                     for blob in blobs:
+#                         if session_count >= limit:
+#                             break
+                            
+#                         if blob.name.endswith('.json'):
+#                             # Check metadata first to avoid unnecessary downloads
+#                             blob.reload()  # Load metadata
+#                             if blob.metadata and blob.metadata.get('user_id') == user_id:
+#                                 try:
+#                                     session_data = json.loads(blob.download_as_string())
+#                                     if session_data not in sessions:  # Avoid duplicates
+#                                         sessions.append(session_data)
+#                                         session_count += 1
+#                                 except:
+#                                     continue
+                                    
+#                 except Exception as e:
+#                     logger.warning(f"⚠️ Could not list Cloud Storage sessions: {e}")
+            
+#             # Sort by last activity
+#             sessions.sort(key=lambda x: x.get('last_active', ''), reverse=True)
+            
+#             logger.info(f"📋 Found {len(sessions)} active sessions for user: {user_id}")
+#             return sessions[:limit]
+            
+#         except Exception as e:
+#             logger.error(f"❌ Failed to list sessions: {e}")
+#             return []
+
+#     async def get_session_stats(self, session_id: str) -> Dict[str, Any]:
+#         """Get detailed statistics about a session"""
+#         try:
+#             session = await self._load_session_from_storage(session_id)
+#             if not session:
+#                 return {}
+            
+#             history = session.get('history', [])
+            
+#             stats = {
+#                 'session_id': session_id,
+#                 'user_id': session.get('user_id'),
+#                 'created_at': session.get('created_at'),
+#                 'last_active': session.get('last_active'),
+#                 'total_interactions': len(history),
+#                 'session_duration_minutes': self._calculate_session_duration(session),
+#                 'message_types': {},
+#                 'average_message_length': 0,
+#                 'average_response_length': 0,
+#                 'travel_context': session.get('travel_context', {})
+#             }
+            
+#             # Calculate message type distribution
+#             if history:
+#                 total_msg_len = sum(h.get('message_length', 0) for h in history)
+#                 total_resp_len = sum(h.get('response_length', 0) for h in history)
+                
+#                 stats['average_message_length'] = total_msg_len // len(history)
+#                 stats['average_response_length'] = total_resp_len // len(history)
+                
+#                 # Count message types
+#                 for interaction in history:
+#                     msg_type = interaction.get('type', 'unknown')
+#                     stats['message_types'][msg_type] = stats['message_types'].get(msg_type, 0) + 1
+            
+#             return stats
+            
+#         except Exception as e:
+#             logger.error(f"❌ Failed to get session stats: {e}")
+#             return {}
+
+#     def _calculate_session_duration(self, session: Dict) -> int:
+#         """Calculate session duration in minutes"""
+#         try:
+#             created = datetime.fromisoformat(session['created_at'].replace('Z', '+00:00'))
+#             last_active = datetime.fromisoformat(session['last_active'].replace('Z', '+00:00'))
+#             return int((last_active - created).total_seconds() / 60)
+#         except:
+#             return 0
+
+#     def get_engine_id(self) -> str:
+#         """Get the current Vertex AI Engine ID"""
+#         return self._engine_id
+
+#     def get_storage_info(self) -> Dict[str, Any]:
+#         """Get information about storage configuration and test write permissions"""
+#         info = {
+#             'engine_id': self._engine_id,
+#             'project_id': self._project_id,
+#             'location': self._location,
+#             'bucket_name': self._bucket_name,
+#             'cloud_storage_available': self._bucket is not None,
+#             'cached_sessions': len(self._local_cache),
+#             'cache_timeout_seconds': self._cache_timeout
+#         }
+        
+#         # Test write permissions
+#         if self._bucket:
+#             try:
+#                 test_blob = self._bucket.blob('test_permissions.txt')
+#                 test_blob.upload_from_string('Testing write permissions')
+#                 info['write_permissions'] = True
+#                 test_blob.delete()  # Clean up after test
+#                 logger.info("✅ Storage write permissions verified")
+#             except Exception as e:
+#                 info['write_permissions'] = False
+#                 info['write_error'] = str(e)
+#                 logger.error(f"❌ Storage write permission test failed: {e}")
+        
+#         return info
+
+# # Initialize the root agent
+# try:
+#     root_agent = ContextSpecialist()
+#     logger.info(f"🚀 Enhanced Context Specialist Agent ready!")
+#     logger.info(f"🔑 Engine ID: {root_agent.get_engine_id()}")
+    
+#     # Log storage info
+#     storage_info = root_agent.get_storage_info()
+#     logger.info(f"💾 Storage: Cloud={'✅' if storage_info['cloud_storage_available'] else '❌'} | Cache={storage_info['cached_sessions']} sessions")
+    
+# except Exception as e:
+#     logger.error(f"❌ Failed to initialize agent: {e}")
+#     logger.info("💡 Troubleshooting tips:")
+#     logger.info("   1. Run: gcloud auth application-default set-quota-project agentic-travel-ai-solutions")
+#     logger.info("   2. Ensure Cloud Storage API is enabled")
+#     logger.info("   3. Check bucket permissions and existence")
+#     raise

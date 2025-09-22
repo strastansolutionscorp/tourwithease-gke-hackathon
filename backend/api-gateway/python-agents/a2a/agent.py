@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0
 
 from google.adk.agents.remote_a2a_agent import AGENT_CARD_WELL_KNOWN_PATH
-from google.adk.agents.remote_a2a_agent import remote_a2a_agent
+from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
 
 # Trip Orchestrator Remote Agent
 trip_orchestrator_remote = RemoteA2aAgent(
